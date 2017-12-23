@@ -1,0 +1,7 @@
+botversion: 2.1.1
+patcherversion: 1.2.2
+rebooterversion: 1.2.0
+token: 
+creators: 171725491093372928
+logchannel: 386235924448804866
+errorlogchannel: 386634262197043202
