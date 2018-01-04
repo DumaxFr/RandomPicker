@@ -74,12 +74,19 @@ public class RandomFromGroupCommand extends Command
         Group group = manager.getGroupByName(name);
         if (group == null)
         {
-            this.bot.sendMessage("That group does not exist. Please note that groups are automatically closed 2 hours after their creation.", 
+            this.bot.sendMessage("That group does not exist. Please note that groups are automatically closed 2 hours after the last person joined.", 
                     event.getMessage().getChannel(), Colors.RED);
             return;
         }
         List<IUser> users = group.getMembers();
         Random r = new Random();
+        try
+        {
+            Thread.sleep(r.nextInt(50));
+        }
+        catch (InterruptedException e)
+        {
+        }
         int num = r.nextInt(users.size());
         this.bot.sendMessage(users.get(num).mention(), event.getChannel(), Colors.PURPLE);
         group.resetTimer();

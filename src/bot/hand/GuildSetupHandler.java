@@ -29,6 +29,7 @@ import bot.hand.cmnd.StatisticCommand;
 import bot.hand.cmnd.StatusCommand;
 import bot.hand.cmnd.TeamChannelCommand;
 import bot.hand.cmnd.TeamCommand;
+import bot.hand.cmnd.TeamFromGroupCommand;
 import bot.hand.cmnd.ThreadCountCommand;
 import bot.hand.cmnd.VersionCommand;
 import bowt.bot.Bot;
@@ -53,6 +54,7 @@ public class GuildSetupHandler
         commandHandler.addCommand(new RandomOnlineCommand(new String[]{"random", "online"}, UserPermissions.USER, bot, main));
         commandHandler.addCommand(new TeamCommand(new String[]{"team"}, UserPermissions.USER, bot, main));
         commandHandler.addCommand(new TeamChannelCommand(new String[]{"teamchannel"}, UserPermissions.USER, bot, main));
+        commandHandler.addCommand(new TeamFromGroupCommand(new String[]{"teamgroup"}, UserPermissions.USER, bot, main));
         commandHandler.addCommand(new JoinGroupCommand(new String[]{"join"}, UserPermissions.USER, bot, main));
         commandHandler.addCommand(new LeaveGroupCommand(new String[]{"leave"}, UserPermissions.USER, bot, main));
         commandHandler.addCommand(new RandomFromGroupCommand(new String[]{"group"}, UserPermissions.USER, bot, main));

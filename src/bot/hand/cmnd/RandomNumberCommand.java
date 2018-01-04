@@ -71,6 +71,13 @@ public class RandomNumberCommand extends Command
             return;
         }
         Random r = new Random();
+        try
+        {
+            Thread.sleep(r.nextInt(50));
+        }
+        catch (InterruptedException e)
+        {
+        }
         int num = r.nextInt(number) + 1;
         this.bot.sendMessage(Integer.toString(num), event.getChannel(), Colors.PURPLE);
         Main.channelLog.print("Rolled a " + num + " (range 1-" + number + ").");

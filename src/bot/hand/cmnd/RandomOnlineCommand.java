@@ -64,6 +64,13 @@ public class RandomOnlineCommand extends Command
             }
         }
         Random r = new Random();
+        try
+        {
+            Thread.sleep(r.nextInt(50));
+        }
+        catch (InterruptedException e)
+        {
+        }
         if(!users.isEmpty())
         {
             int num = r.nextInt(users.size());

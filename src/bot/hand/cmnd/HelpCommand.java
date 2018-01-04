@@ -48,6 +48,7 @@ public class HelpCommand extends Command
         commandHandler.addCommand(new RandomOnlineCommand(new String[]{"random", "online"}, UserPermissions.USER, this.bot, this.main));
         commandHandler.addCommand(new TeamCommand(new String[]{"team"}, UserPermissions.USER, this.bot, this.main));
         commandHandler.addCommand(new TeamChannelCommand(new String[]{"teamchannel"}, UserPermissions.USER, this.bot, this.main));
+        commandHandler.addCommand(new TeamFromGroupCommand(new String[]{"teamgroup"}, UserPermissions.USER, this.bot, this.main));
         commandHandler.addCommand(new JoinGroupCommand(new String[]{"join"}, UserPermissions.USER, this.bot, this.main));
         commandHandler.addCommand(new LeaveGroupCommand(new String[]{"leave"}, UserPermissions.USER, this.bot, this.main));
         commandHandler.addCommand(new RandomFromGroupCommand(new String[]{"group"}, UserPermissions.USER, this.bot, this.main));
@@ -182,6 +183,7 @@ public class HelpCommand extends Command
         return "**```"
                 + "To make the bot form random teams use the following: \n\n"
                 + "Use '"+Bot.getPrefix()+"team 4 @user @user @user @user @user @user @user @user' to create 4 teams from the mentioned users. \n\n"
+                + "Use '"+Bot.getPrefix()+"teamgroup 4 group1' to create 4 teams from the users that joined group1. \n\n"
                 + "Use '"+Bot.getPrefix()+"teamchannel 6' to create 6 teams from the users that are in the same voicechannel as you. \n"
                 + "You can extend the command like so '"+Bot.getPrefix()+"teamchannel n 6' so it wont choose you.\n"
                 + "You can change the number of teams to anything above 0."

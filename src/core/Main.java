@@ -17,6 +17,7 @@ import bot.hand.NewGuildHandler;
 import bot.hand.ReadyHandler;
 import bowt.bot.Bot;
 import bowt.bot.exc.BowtieClientException;
+import bowt.cons.LibConstants;
 import bowt.guild.GuildObject;
 import bowt.hand.impl.OfflineHandler;
 import bowt.log.Logger;
@@ -28,7 +29,7 @@ import bowt.prop.Properties;
  */
 public class Main
 {
-    public static final String BOT_VERSION = "2.1.2";
+    public static final String BOT_VERSION = "2.2.0";
     public static Logger log;
     public static Logger channelLog;
     public static Logger errorLog;
@@ -58,7 +59,12 @@ public class Main
     {
         this.bot = new Bot(Properties.getValueOf("token"), "r-");
         this.managers = new ArrayList<GroupManager>();
-        log.printEmpty();
+        channelLog.setPrefix("[Bowt]");
+        channelLog.printEmpty();
+        channelLog.print("Bowtie Bot Lib v"+LibConstants.VERSION);
+        channelLog.print("Last updated "+LibConstants.LAST_UPDATE);
+        channelLog.printEmpty();
+        channelLog.setPrefix("[R]");
         log.print("Booting Random User bot version "+BOT_VERSION);
         log.print("Patcher version "+Properties.getValueOf("patcherversion"));
         log.print("Rebooter version "+Properties.getValueOf("rebooterversion"));

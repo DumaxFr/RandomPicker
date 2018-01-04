@@ -89,6 +89,13 @@ public class TeamCommand extends Command
         int currentTeam = 0;
         while (!users.isEmpty())
         {
+            try
+            {
+                Thread.sleep(r.nextInt(50));
+            }
+            catch (InterruptedException e)
+            {
+            }
             if (currentTeam == teams.size())
             {
                 currentTeam = 0;

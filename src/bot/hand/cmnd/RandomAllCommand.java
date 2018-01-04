@@ -63,6 +63,13 @@ public class RandomAllCommand extends Command
             }
         }
         Random r = new Random();
+        try
+        {
+            Thread.sleep(r.nextInt(50));
+        }
+        catch (InterruptedException e)
+        {
+        }
         int num = r.nextInt(users.size());
         this.bot.sendMessage(users.get(num).mention(), event.getChannel(), Colors.PURPLE);
         Main.channelLog.print("Picked option " + (num + 1) + " out of " + users.size() + ".");
