@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import sx.blah.discord.handle.obj.IRole;
 import sx.blah.discord.handle.obj.IUser;
-import sx.blah.discord.handle.obj.StatusType;
 import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
@@ -17,7 +17,7 @@ import core.Main;
  * @author &#8904
  *
  */
-public class RandomOnlineCommand extends Command
+public class RandomCommand extends Command
 {
     private Bot bot;
     private Main main;
@@ -26,14 +26,14 @@ public class RandomOnlineCommand extends Command
      * @param validExpressions
      * @param permission
      */
-    public RandomOnlineCommand(String[] validExpressions, int permission, Bot bot, Main main) 
+    public RandomCommand(String[] validExpressions, int permission, Bot bot, Main main) 
     {
         super(validExpressions, permission, true);
         this.bot = bot;
         this.main = main;
     }
     
-    public RandomOnlineCommand(List<String> validExpressions, int permission, Bot bot, Main main) 
+    public RandomCommand(List<String> validExpressions, int permission, Bot bot, Main main) 
     {
         super(validExpressions, permission, true);
         this.bot = bot;
@@ -46,7 +46,7 @@ public class RandomOnlineCommand extends Command
     @Override
     public Command copy()
     {
-        return new RandomOnlineCommand(this.validExpressions, this.permission, this.bot, this.main);
+        return new RandomCommand(this.validExpressions, this.permission, this.bot, this.main);
     }
 
     /**
@@ -55,15 +55,42 @@ public class RandomOnlineCommand extends Command
     @Override
     public void execute(CommandEvent event)
     {
-        List<IUser> allusers = event.getGuildObject().getGuild().getUsers();
         List<IUser> users = new ArrayList<IUser>();
-        for(IUser user : allusers)
+        
+        boolean hasMentions = false;
+        
+        if (!event.getMessage().getMentions().isEmpty())
         {
-            if (!user.isBot() && !user.getPresence().getStatus().equals(StatusType.OFFLINE) && !user.getPresence().getStatus().equals(StatusType.INVISIBLE))
+            hasMentions = true;
+            for (IUser user : event.getMessage().getMentions())
             {
-                users.add(user);
+                if (!users.contains(user))
+                {
+                    users.add(user);
+                }
             }
         }
+        if (!event.getMessage().getRoleMentions().isEmpty())
+        {
+            hasMentions = true;
+            for (IRole role : event.getMessage().getRoleMentions())
+            {
+                for (IUser user : event.getGuildObject().getGuild().getUsersByRole(role))
+                {
+                    if (!users.contains(user))
+                    {
+                        users.add(user);
+                    }
+                }
+            }
+        }
+        
+        if (!hasMentions)
+        {
+            this.bot.sendMessage("Make sure to mention either users or at least one role for the bot to pick from.", event.getMessage().getChannel(), Colors.RED);
+            return;
+        }
+        
         Random r = new Random();
         try
         {
@@ -72,7 +99,8 @@ public class RandomOnlineCommand extends Command
         catch (InterruptedException e)
         {
         }
-        if(!users.isEmpty())
+        
+        if (!users.isEmpty())
         {
             int num = r.nextInt(users.size());
             this.bot.sendMessage(users.get(num).mention() + " \n(" + users.get(num).getDisplayName(event.getGuildObject().getGuild()) + ")", event.getChannel(), Colors.PURPLE);
@@ -86,9 +114,11 @@ public class RandomOnlineCommand extends Command
     public String getHelp()
     {
         return "```"
-                + "Random Global User Command \n"   
+                + "Random From Mentioned Command \n"   
                 + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
-                + "Picks a random non-bot user from the users that are currently online. \n\n"
+                + "Picks a random user from the tagged users or roles. \n\n"
+                + Bot.getPrefix() + "random @user @role \n\n"
+                + "This picks from a pool constisting of the mentioned user and every other user that has the mentioned role."
                 + "```";
     }
 }

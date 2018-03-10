@@ -33,7 +33,6 @@ public class GuildKickHandler implements IListener<GuildLeaveEvent>{
     public void handle(GuildLeaveEvent event){
         GuildObject guild = this.bot.getGuildObjectByID(event.getGuild().getStringID());
         this.bot.removeGuildObject(guild);
-        Main.log.print("Bot was kicked from '"+event.getGuild().getName()+"' ("+event.getGuild().getStringID()+")");
-        Main.channelLog.print("Bot was kicked from '"+event.getGuild().getName()+"' ("+event.getGuild().getStringID()+")");
+        Bot.log.print(this, "Bot was kicked from '"+event.getGuild().getName()+"' ("+event.getGuild().getStringID()+")");
     }
 }

@@ -3,9 +3,11 @@ package bot.hand.cmnd;
 import java.io.File;
 import java.util.List;
 
+import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.util.perm.UserPermissions;
 import core.Main;
 
 /**
@@ -52,7 +54,7 @@ public class RebootCommand extends Command
         }
         catch(Exception e)
         {
-            Main.log.print(e);
+            Bot.errorLog.print(this, e);
         }
         System.exit(0);
     }
@@ -65,7 +67,7 @@ public class RebootCommand extends Command
     {
         return "```"
                 + "Reboot Command \n"
-                + "<Creator> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
                 + "Reboots the bot. \n\n\n"
                 + "Related Commands: \n"
                 + "- patch"

@@ -14,6 +14,7 @@ import java.util.List;
 import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.evnt.impl.CommandEvent;
+import bowt.util.perm.UserPermissions;
 
 import com.vdurmont.emoji.EmojiManager;
 
@@ -83,7 +84,7 @@ public class DownloadFileCommand extends Command
         }
         catch (MalformedURLException e)
         {
-            Main.log.print(e);
+            Bot.errorLog.print(this, e);
         }
         catch (DirectoryNotEmptyException e)
         {
@@ -92,7 +93,7 @@ public class DownloadFileCommand extends Command
         }
         catch (IOException e)
         {
-            Main.log.print(e);
+            Bot.errorLog.print(this, e);
         }
     }
     
@@ -104,7 +105,7 @@ public class DownloadFileCommand extends Command
     {
         return "```"
                 + "Download File Command \n"
-                + "<Creator> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
                 + "Downloads the uploaded file to the given location. \n\n\n"
                 + "Related Commands: \n"
                 + "- directory\n"

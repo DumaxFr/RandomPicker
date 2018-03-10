@@ -2,7 +2,8 @@ package bot.hand.cmnd;
 
 import java.util.List;
 
-import sx.blah.discord.util.RequestBuffer;
+import sx.blah.discord.handle.obj.IRole;
+import sx.blah.discord.handle.obj.IUser;
 import bot.group.Group;
 import bot.group.GroupManager;
 import bowt.bot.Bot;
@@ -10,16 +11,13 @@ import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
 import bowt.util.perm.UserPermissions;
-
-import com.vdurmont.emoji.EmojiManager;
-
 import core.Main;
 
 /**
  * @author &#8904
  *
  */
-public class LeaveGroupCommand extends Command
+public class RemoveFromGroupCommand extends Command
 {
     private Bot bot;
     private Main main;
@@ -28,14 +26,14 @@ public class LeaveGroupCommand extends Command
      * @param validExpressions
      * @param permission
      */
-    public LeaveGroupCommand(String[] validExpressions, int permission, Bot bot, Main main) 
+    public RemoveFromGroupCommand(String[] validExpressions, int permission, Bot bot, Main main) 
     {
         super(validExpressions, permission, true);
         this.bot = bot;
         this.main = main;
     }
     
-    public LeaveGroupCommand(List<String> validExpressions, int permission, Bot bot, Main main) 
+    public RemoveFromGroupCommand(List<String> validExpressions, int permission, Bot bot, Main main) 
     {
         super(validExpressions, permission, true);
         this.bot = bot;
@@ -48,7 +46,7 @@ public class LeaveGroupCommand extends Command
     @Override
     public Command copy()
     {
-        return new LeaveGroupCommand(this.validExpressions, this.permission, this.bot, this.main);
+        return new RemoveFromGroupCommand(this.validExpressions, this.permission, this.bot, this.main);
     }
 
     /**
@@ -60,13 +58,23 @@ public class LeaveGroupCommand extends Command
         GroupManager manager = GroupManager.getManagerForGuild(event.getGuildObject());
         String[] parts = event.getMessage().getContent().trim().toLowerCase().split(" ");
         String name = "";
+        List<IUser> users = event.getMentions();
+        
+        for (IRole role : event.getMessage().getRoleMentions())
+        {
+            for (IUser user : event.getGuildObject().getGuild().getUsersByRole(role))
+            {
+                users.add(user);
+            }
+        }
+        
         if (parts.length > 1)
         {
             name = parts[1];
         }
-        else
+        else if (parts.length <= 1 || users.isEmpty())
         {
-            this.bot.sendMessage("You have to add the name of the group. Example: '" + Bot.getPrefix() + "leave groupname'.", event.getMessage().getChannel(), Colors.RED);
+            this.bot.sendMessage("Usage: '" + Bot.getPrefix() + "remove groupname @user'.", event.getMessage().getChannel(), Colors.RED);
             return;
         }
         Group group = manager.getGroupByName(name);
@@ -75,12 +83,17 @@ public class LeaveGroupCommand extends Command
             this.bot.sendMessage("That group does not exist.", event.getMessage().getChannel(), Colors.RED);
             return;
         }
-        if (group.removeMember(event.getAuthor()))
+        
+        int count = 0;
+        for (IUser user : users)
         {
-            RequestBuffer.request(() -> event.getMessage().addReaction(EmojiManager.getForAlias("white_check_mark"))).get();
-            return;
+            if (group.removeMember(user))
+            {
+                count++;
+            }
         }
-        this.bot.sendMessage("You are not part of that group.", event.getMessage().getChannel(), Colors.RED);
+        
+        this.bot.sendMessage("Removed " + count + " member/s from the group '" + group.getName() + "'.", event.getMessage().getChannel(), count == 0 ? Colors.RED : Colors.GREEN);
     }
 
     /**
@@ -90,17 +103,20 @@ public class LeaveGroupCommand extends Command
     public String getHelp()
     {
         return "```"
-                + "Leave Group Command \n"   
+                + "Remove From Group Command \n"   
                 + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
-                + "Makes you leave the group with the given name if it exists. \n\n\n"
+                + "Removes the mentioned user/s from the group with the given name. \n\n\n"
                 + "Usage: \n\n"
-                + Bot.getPrefix() + "leave group1"
+                + Bot.getPrefix() + "remove group1 @user\n\n\n"
+                + "'group1' is the groupname which you have to change to the name of the group that "
+                + "you want to remove members from.\n\n"
+                + "You can mention multiple users to remove them all at once."
                 + "\n\n\n"
                 + "Related commands: \n"
                 + "- create\n"
                 + "- close\n"
-                + "- remove\n"
-                + "- join"
+                + "- join\n"
+                + "- leave"
                 + "```";
     }
 }

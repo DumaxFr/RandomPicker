@@ -10,7 +10,7 @@ import java.util.List;
 import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.evnt.impl.CommandEvent;
-import core.Main;
+import bowt.util.perm.UserPermissions;
 
 /**
  * @author &#8904
@@ -63,7 +63,7 @@ public class GetAliveLogsCommand extends Command
             }
             catch (Exception e)
             {
-                Main.log.print(e);
+                Bot.errorLog.print(this, e);
             }
             event.getMessage().getChannel().sendFile(file);
             if (!lastError.equals(""))
@@ -73,7 +73,7 @@ public class GetAliveLogsCommand extends Command
         }
         catch (FileNotFoundException e) 
         {
-            Main.log.print(e);
+            Bot.errorLog.print(this, e);
         }
     }
 
@@ -85,7 +85,7 @@ public class GetAliveLogsCommand extends Command
     {
         return "```"
                 + "Get Alivelogs Command \n"
-                + "<Creator> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
                 + "This command will send you a file containing the alivelogs. \n\n\n"
                 + "Related Commands: \n"
                 + "- clearalivelogs"

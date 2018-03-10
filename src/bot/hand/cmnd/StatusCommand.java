@@ -5,6 +5,7 @@ import java.util.List;
 import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.evnt.impl.CommandEvent;
+import bowt.util.perm.UserPermissions;
 
 import com.vdurmont.emoji.EmojiManager;
 
@@ -43,7 +44,7 @@ public class StatusCommand extends Command
     public void execute(CommandEvent event) 
     {
         String status = event.getMessage().getContent().replace(Bot.getPrefix()+"status", "").trim();
-        this.bot.getClient().changePlayingText(status);
+        this.bot.setPlayingText(status);
         event.getMessage().addReaction(EmojiManager.getForAlias("white_check_mark"));
     }
 
@@ -55,7 +56,7 @@ public class StatusCommand extends Command
     {
         return "```"
                 + "Status Command\n"
-                + "<Creator>\n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions>\n\n"
                 + "Sets the 'playing game' text of the bot."
                 + "```";
     }

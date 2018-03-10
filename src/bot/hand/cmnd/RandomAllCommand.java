@@ -9,6 +9,7 @@ import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.util.perm.UserPermissions;
 import core.Main;
 
 /**
@@ -26,14 +27,14 @@ public class RandomAllCommand extends Command
      */
     public RandomAllCommand(String[] validExpressions, int permission, Bot bot, Main main) 
     {
-        super(validExpressions, permission);
+        super(validExpressions, permission, true);
         this.bot = bot;
         this.main = main;
     }
     
     public RandomAllCommand(List<String> validExpressions, int permission, Bot bot, Main main) 
     {
-        super(validExpressions, permission);
+        super(validExpressions, permission, true);
         this.bot = bot;
         this.main = main;
     }
@@ -71,8 +72,7 @@ public class RandomAllCommand extends Command
         {
         }
         int num = r.nextInt(users.size());
-        this.bot.sendMessage(users.get(num).mention(), event.getChannel(), Colors.PURPLE);
-        Main.channelLog.print("Picked option " + (num + 1) + " out of " + users.size() + ".");
+        this.bot.sendMessage(users.get(num).mention() + " \n(" + users.get(num).getDisplayName(event.getGuildObject().getGuild()) + ")", event.getChannel(), Colors.PURPLE);
     }
 
     /**
@@ -83,7 +83,7 @@ public class RandomAllCommand extends Command
     {
         return "```"
                 + "Random Global User Command \n"   
-                + "<User> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
                 + "Picks a random non-bot user from the entire user list. This includes offline users. \n\n"
                 + "```";
     }

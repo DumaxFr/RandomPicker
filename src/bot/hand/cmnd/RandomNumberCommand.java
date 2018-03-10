@@ -7,6 +7,7 @@ import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.util.perm.UserPermissions;
 import core.Main;
 
 /**
@@ -24,14 +25,14 @@ public class RandomNumberCommand extends Command
      */
     public RandomNumberCommand(String[] validExpressions, int permission, Bot bot, Main main) 
     {
-        super(validExpressions, permission);
+        super(validExpressions, permission, true);
         this.bot = bot;
         this.main = main;
     }
     
     public RandomNumberCommand(List<String> validExpressions, int permission, Bot bot, Main main) 
     {
-        super(validExpressions, permission);
+        super(validExpressions, permission, true);
         this.bot = bot;
         this.main = main;
     }
@@ -80,7 +81,6 @@ public class RandomNumberCommand extends Command
         }
         int num = r.nextInt(number) + 1;
         this.bot.sendMessage(Integer.toString(num), event.getChannel(), Colors.PURPLE);
-        Main.channelLog.print("Rolled a " + num + " (range 1-" + number + ").");
     }
 
     /**
@@ -91,7 +91,7 @@ public class RandomNumberCommand extends Command
     {
         return "```"
                 + "Roll Command \n"   
-                + "<User> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
                 + "Rolls a random number between 1 and the number you gave it. \n\n\n"
                 + "Usage: \n\n"
                 + Bot.getPrefix() + "roll 6"

@@ -5,23 +5,23 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TimeZone;
 
+import remote.RemoteServer;
 import sx.blah.discord.api.events.IListener;
-import bot.guild.GroupManager;
+import bot.group.GroupManager;
 import bot.hand.GuildKickHandler;
 import bot.hand.MessageHandler;
+import bot.hand.NetworkEventHandler;
 import bot.hand.NewGuildHandler;
 import bot.hand.ReadyHandler;
 import bowt.bot.Bot;
 import bowt.bot.exc.BowtieClientException;
 import bowt.cons.LibConstants;
-import bowt.guild.GuildObject;
 import bowt.hand.impl.OfflineHandler;
 import bowt.log.Logger;
 import bowt.prop.Properties;
+import bowt.thread.Threads;
+import db.DatabaseAccess;
 
 /**
  * @author &#8904
@@ -29,45 +29,35 @@ import bowt.prop.Properties;
  */
 public class Main
 {
-    public static final String BOT_VERSION = "2.2.0";
-    public static Logger log;
-    public static Logger channelLog;
-    public static Logger errorLog;
+    public static final String BOT_VERSION = "3.2.6";
     private Bot bot;
     private OfflineHandler offlineHandler;
-    private List<GroupManager> managers;
+    private DatabaseAccess database;
+    private RemoteServer server;
     
     public static void main(String[] args)
     {
-        Main.log = new Logger("logs/system_logs.log", TimeZone.getTimeZone("CET"));
-        Main.log.setPrefix("[R]");
-        Main.channelLog = new Logger(TimeZone.getTimeZone("CET"));
-        Main.channelLog.setLogToSystemOut(false);
-        Main.errorLog = new Logger("logs/error_logs.log", TimeZone.getTimeZone("CET"));
+        Bot.log.setLogToSystemOut(false);
         try
         {
-            System.setErr(new PrintStream(new BufferedOutputStream(new FileOutputStream(errorLog.getLoggerFile())), true));
+            System.setErr(new PrintStream(new BufferedOutputStream(new FileOutputStream(Bot.errorLog.getLoggerFile())), true));
         }
         catch (IOException e)
         {
-            log.print(e);
+            Bot.errorLog.print(e);
         }
         new Main();
     }
     
     public Main()
     {
+        this.database = new DatabaseAccess(this);
+        GroupManager.setDatabase(this.database);
         this.bot = new Bot(Properties.getValueOf("token"), "r-");
-        this.managers = new ArrayList<GroupManager>();
-        channelLog.setPrefix("[Bowt]");
-        channelLog.printEmpty();
-        channelLog.print("Bowtie Bot Lib v"+LibConstants.VERSION);
-        channelLog.print("Last updated "+LibConstants.LAST_UPDATE);
-        channelLog.printEmpty();
-        channelLog.setPrefix("[R]");
-        log.print("Booting Random User bot version "+BOT_VERSION);
-        log.print("Patcher version "+Properties.getValueOf("patcherversion"));
-        log.print("Rebooter version "+Properties.getValueOf("rebooterversion"));
+        new LibConstants();
+        Bot.log.print(this, "Booting Random bot version "+BOT_VERSION);
+        Bot.log.print(this, "Patcher version "+Properties.getValueOf("patcherversion"));
+        Bot.log.print(this, "Rebooter version "+Properties.getValueOf("rebooterversion"));
         
         Properties.setValueOf("botversion", BOT_VERSION);
         IListener[] listeners = {
@@ -83,14 +73,14 @@ public class Main
         }
         catch (BowtieClientException e)
         {
-            log.print(e);
+            Bot.errorLog.print(this, e);
         }
         
         offlineHandler = new OfflineHandler(this.bot){
             @Override
             public void handle()
             {
-                this.log.print("Bot offline. Trying to reboot.");
+                Bot.log.print(this, "Bot offline. Trying to reboot.");
                 File jar = null;
                 try
                 {
@@ -99,7 +89,7 @@ public class Main
                 }
                 catch(Exception e)
                 {
-                    Main.log.print(e);
+                    Bot.errorLog.print(this, e);
                 }
                 System.exit(0);
             }
@@ -116,35 +106,47 @@ public class Main
         }
         catch (BowtieClientException e)
         {
-            log.print(e);
+            Bot.errorLog.print(this, e);
         }
         if (exit)
         {
             this.offlineHandler.stop();
+            Threads.kill();
             Logger.closeAll();
             System.exit(0);
         }
     }
     
-    public void addGrouManager(GroupManager manager)
+    public void setupRemoteServer()
     {
-        this.managers.add(manager);
-    }
-    
-    public GroupManager getManagerByGuild(GuildObject guild)
-    {
-        for (GroupManager manager : this.managers)
+        try
         {
-            if (manager.getGuild().equals(guild))
+            if (server != null)
             {
-                return manager;
+                server.kill();
             }
+            String port = Properties.getValueOf("defaultPort");
+            if (port == null)
+            {
+                port = "0";
+            }
+            this.server = new RemoteServer(Integer.parseInt(port), this);
+            this.server.registerEventHandler(new NetworkEventHandler(this));
+            this.server.start();
         }
-        return null;
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
     }
     
     public Bot getBot()
     {
         return this.bot;
+    }
+    
+    public DatabaseAccess getDatabase()
+    {
+        return this.database;
     }
 }

@@ -4,12 +4,13 @@ import java.util.List;
 import java.util.Random;
 
 import sx.blah.discord.handle.obj.IUser;
-import bot.guild.Group;
-import bot.guild.GroupManager;
+import bot.group.Group;
+import bot.group.GroupManager;
 import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.util.perm.UserPermissions;
 import core.Main;
 
 /**
@@ -27,14 +28,14 @@ public class RandomFromGroupCommand extends Command
      */
     public RandomFromGroupCommand(String[] validExpressions, int permission, Bot bot, Main main) 
     {
-        super(validExpressions, permission);
+        super(validExpressions, permission, true);
         this.bot = bot;
         this.main = main;
     }
     
     public RandomFromGroupCommand(List<String> validExpressions, int permission, Bot bot, Main main) 
     {
-        super(validExpressions, permission);
+        super(validExpressions, permission, true);
         this.bot = bot;
         this.main = main;
     }
@@ -54,12 +55,7 @@ public class RandomFromGroupCommand extends Command
     @Override
     public void execute(CommandEvent event)
     {
-        GroupManager manager = this.main.getManagerByGuild(event.getGuildObject());
-        if (manager == null)
-        {
-            manager = new GroupManager(event.getGuildObject());
-            this.main.addGrouManager(manager);
-        }
+        GroupManager manager = GroupManager.getManagerForGuild(event.getGuildObject());
         String[] parts = event.getMessage().getContent().trim().toLowerCase().split(" ");
         String name = "";
         if (parts.length > 1)
@@ -74,23 +70,23 @@ public class RandomFromGroupCommand extends Command
         Group group = manager.getGroupByName(name);
         if (group == null)
         {
-            this.bot.sendMessage("That group does not exist. Please note that groups are automatically closed 2 hours after the last person joined.", 
-                    event.getMessage().getChannel(), Colors.RED);
+            this.bot.sendMessage("Make sure to open a group by using the create command first.", event.getMessage().getChannel(), Colors.RED);
             return;
         }
         List<IUser> users = group.getMembers();
-        Random r = new Random();
-        try
+        if (!users.isEmpty())
         {
-            Thread.sleep(r.nextInt(50));
+            Random r = new Random();
+            try
+            {
+                Thread.sleep(r.nextInt(50));
+            }
+            catch (InterruptedException e)
+            {
+            }
+            int num = r.nextInt(users.size());
+            this.bot.sendMessage(users.get(num).mention() + " \n(" + users.get(num).getDisplayName(event.getGuildObject().getGuild()) + ")", event.getChannel(), Colors.PURPLE);
         }
-        catch (InterruptedException e)
-        {
-        }
-        int num = r.nextInt(users.size());
-        this.bot.sendMessage(users.get(num).mention(), event.getChannel(), Colors.PURPLE);
-        group.resetTimer();
-        Main.channelLog.print("Picked option " + (num + 1) + " out of " + users.size() + ".");
     }
 
     /**
@@ -101,10 +97,10 @@ public class RandomFromGroupCommand extends Command
     {
         return "```"
                 + "Random User From Group Command \n"   
-                + "<User> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
                 + "Picks a random user from a group with the given name. \n\n\n"
                 + "Usage:\n\n"
-                + Bot.getPrefix() + "group team1"
+                + Bot.getPrefix() + "group group1"
                 + "```";
     }
 }

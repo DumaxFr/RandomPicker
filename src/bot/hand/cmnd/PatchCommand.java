@@ -8,6 +8,7 @@ import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.util.perm.UserPermissions;
 import core.Main;
 
 /**
@@ -65,7 +66,7 @@ public class PatchCommand extends Command
             }
             catch (Exception e)
             {
-                Main.log.print(e);
+                Bot.errorLog.print(this, e);
             }
             System.exit(0);
         }
@@ -79,7 +80,7 @@ public class PatchCommand extends Command
     {
         return "```"
                 + "Patch Command \n"
-                + "<Creator> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
                 + "Replaces the bot file with the attached one and reboots the bot. \n\n\n"
                 + "Related Commands: \n"
                 + "- reboot"

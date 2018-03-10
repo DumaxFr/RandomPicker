@@ -6,6 +6,7 @@ import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.util.perm.UserPermissions;
 
 /**
  * @author &#8904
@@ -21,7 +22,7 @@ public class MemoryCommand extends Command
      */
     public MemoryCommand(String[] validExpressions, int permission, Bot bot) 
     {
-        super(validExpressions, permission);
+        super(validExpressions, permission, true);
         this.bot = bot;
     }
     
@@ -31,7 +32,7 @@ public class MemoryCommand extends Command
      */
     public MemoryCommand(List<String> validExpressions, int permission, Bot bot) 
     {
-        super(validExpressions, permission);
+        super(validExpressions, permission, true);
         this.bot = bot;
     }
 
@@ -53,7 +54,7 @@ public class MemoryCommand extends Command
     {
         return "```"
                 + "Memory Usage Command \n"
-                + "<Creator> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
                 + "This command shows how much memory the bot is currently using. \n\n\n"
                 + "Related Commands: \n"
                 + "- stats \n"

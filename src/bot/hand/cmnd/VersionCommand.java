@@ -1,12 +1,16 @@
+
 package bot.hand.cmnd;
 
 import java.util.List;
 
+import sx.blah.discord.Discord4J;
 import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
+import bowt.cons.LibConstants;
 import bowt.evnt.impl.CommandEvent;
 import bowt.prop.Properties;
+import bowt.util.perm.UserPermissions;
 
 /**
  * @author &#8904
@@ -22,7 +26,7 @@ public class VersionCommand extends Command
      */
     public VersionCommand(String[] validExpressions, int permission, Bot bot)
     {
-        super(validExpressions, permission);
+        super(validExpressions, permission, true);
         this.bot = bot;
     }
     
@@ -32,7 +36,7 @@ public class VersionCommand extends Command
      */
     public VersionCommand(List<String> validExpressions, int permission, Bot bot) 
     {
-        super(validExpressions, permission);
+        super(validExpressions, permission, true);
         this.bot = bot;
     }
 
@@ -44,8 +48,13 @@ public class VersionCommand extends Command
     {
         String versionInformation = "```"
                                     + "Bot version: "+Properties.getValueOf("botversion")+" \n"
+                                    + "BowtieLib version: "+LibConstants.VERSION+"\n"
+                                    + "Discord4J version: "+Discord4J.VERSION+"\n"
+                                    + "Discord4J commit: "+Discord4J.COMMIT+"\n"
                                     + "Patcher version: "+Properties.getValueOf("patcherversion")+" \n"
-                                    + "Rebooter version: "+Properties.getValueOf("rebooterversion")
+                                    + "Rebooter version: "+Properties.getValueOf("rebooterversion")+"\n"
+                                    + "Property version: "+Properties.getValueOf("propertyVersion")+" \n"
+                                    + "Logger version: "+Properties.getValueOf("loggerVersion")
                                     + "```";
         bot.sendMessage(versionInformation, event.getMessage().getChannel(), Colors.PURPLE);
     }
@@ -58,9 +67,9 @@ public class VersionCommand extends Command
     {
         return "```"
                 + "Get Versions Command \n"
-                + "<User> \n\n"
-                + "This will send you information about the current versions of the bot, the "
-                + "patcher and the rebooter."
+                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "This will send you information about the current versions of the bot and other libs that are "
+                + "used."
                 + "```";
     }
 

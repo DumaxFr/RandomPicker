@@ -4,11 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import sx.blah.discord.handle.obj.IMessage;
+import sx.blah.discord.handle.obj.IRole;
 import sx.blah.discord.handle.obj.IUser;
+import sx.blah.discord.util.RequestBuffer;
 import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.util.perm.UserPermissions;
 import core.Main;
 
 /**
@@ -26,14 +30,14 @@ public class TeamCommand extends Command
      */
     public TeamCommand(String[] validExpressions, int permission, Bot bot, Main main) 
     {
-        super(validExpressions, permission);
+        super(validExpressions, permission, true);
         this.bot = bot;
         this.main = main;
     }
     
     public TeamCommand(List<String> validExpressions, int permission, Bot bot, Main main) 
     {
-        super(validExpressions, permission);
+        super(validExpressions, permission, true);
         this.bot = bot;
         this.main = main;
     }
@@ -55,6 +59,41 @@ public class TeamCommand extends Command
     {
         int numberOfTeams = 0;
         List<List<IUser>> teams = new ArrayList<List<IUser>>();
+        
+        boolean slowmode = event.getMessage().getContent().contains("slow");
+        int delay = 5000;
+        
+        if (event.getMessage().getContent().replace("slow (", "slow(").contains("slow("))
+        {
+            String message = event.getMessage().getContent().replace("slow (", "slow(");
+            for (String s : message.split(" "))
+            {
+                if (s.contains("slow("))
+                {
+                    try
+                    {
+                        delay = Integer.parseInt(s.replace("slow(", "").replace(")", "").trim()) * 1000;
+                        
+                        if (delay > 300000)
+                        {
+                            this.bot.sendMessage("The slowmode delay time may not be higher than 300 seconds. The bot will use the default 5 second delay.", event.getMessage().getChannel(), Colors.RED);
+                            delay = 5000;
+                        }
+                        if (delay < 0)
+                        {
+                            this.bot.sendMessage("The slowmode delay time may not be lower than 0 seconds. The bot will use the default 5 second delay.", event.getMessage().getChannel(), Colors.RED);
+                            delay = 5000;
+                        }
+                    }
+                    catch (NumberFormatException e)
+                    {
+                        this.bot.sendMessage("Wrong format for the desired slowmode delay time. The bot will use the default 5 second delay.", event.getMessage().getChannel(), Colors.RED);
+                        delay = 5000;
+                    }
+                }
+            }
+        }
+        
         String[] parts = event.getMessage().getContent().split(" ");if (parts.length > 1)
         {
             try
@@ -75,9 +114,29 @@ public class TeamCommand extends Command
             numberOfTeams = 2;
         }
         List<IUser> users = event.getMentions();
+        
+        if (!event.getMessage().getRoleMentions().isEmpty())
+        {
+            for (IRole role : event.getMessage().getRoleMentions())
+            {
+                for (IUser user : event.getGuildObject().getGuild().getUsersByRole(role))
+                {
+                    if (!users.contains(user))
+                    {
+                        users.add(user);
+                    }
+                }
+            }
+        }
+        
         if (users.size() < numberOfTeams)
         {
             this.bot.sendMessage("You don't have enough users for the teams.", event.getMessage().getChannel(), Colors.RED);
+            return;
+        }
+        if (users.size() / numberOfTeams > 25)
+        {
+            this.bot.sendMessage("Please choose a higher number of teams. The bot can only display 25 users per team.", event.getMessage().getChannel(), Colors.RED);
             return;
         }
         for (int i = 0; i < numberOfTeams; i++)
@@ -87,42 +146,88 @@ public class TeamCommand extends Command
         Random r = new Random();
         int num = 0;
         int currentTeam = 0;
-        while (!users.isEmpty())
+        if (!slowmode)
         {
-            try
+            while (!users.isEmpty())
             {
-                Thread.sleep(r.nextInt(50));
+                try
+                {
+                    Thread.sleep(r.nextInt(50));
+                }
+                catch (InterruptedException e)
+                {
+                }
+                if (currentTeam == teams.size())
+                {
+                    currentTeam = 0;
+                }
+                num = r.nextInt(users.size());
+                teams.get(currentTeam).add(users.remove(num));
+                currentTeam++;
+                try
+                {
+                    Thread.sleep(r.nextInt(128));
+                }
+                catch (InterruptedException e)
+                {
+                    Bot.errorLog.print(this, e);
+                }
             }
-            catch (InterruptedException e)
+            List<String> mentions = null;
+            for (int i = 0; i < teams.size(); i++)
             {
-            }
-            if (currentTeam == teams.size())
-            {
-                currentTeam = 0;
-            }
-            num = r.nextInt(users.size());
-            Main.channelLog.print("Picked option " + (num + 1) + " out of " + users.size() + ".");
-            teams.get(currentTeam).add(users.remove(num));
-            currentTeam++;
-            try
-            {
-                Thread.sleep((long)r.nextInt(128));
-            }
-            catch (InterruptedException e)
-            {
-                Main.errorLog.print(e);
+                mentions = new ArrayList<String>();
+                for (IUser user : teams.get(i))
+                {
+                    mentions.add(user.mention() + " \n(" + user.getDisplayName(event.getGuildObject().getGuild()) + ")");
+                }
+                this.bot.sendListMessage("Team " + (i + 1), mentions, event.getChannel(), 25, true);
             }
         }
-        List<String> mentions = null;
-        for (int i = 0; i < teams.size(); i++)
+        else //slowmode
         {
-            mentions = new ArrayList<String>();
-            for (IUser user : teams.get(i))
+            //setting up teammessages
+            List<IMessage> messages = new ArrayList<>();
+            for (int i = 0; i < teams.size(); i++)
             {
-                mentions.add(user.mention());
+                messages.add(this.bot.sendMessage("Team " + (i + 1), event.getChannel()));
             }
-            this.bot.sendListMessage("Team " + (i + 1), mentions, event.getChannel(), 25, true);
+            
+            List<String> mentions = null;
+            
+            while (!users.isEmpty())
+            {
+                try
+                {
+                    Thread.sleep(delay);
+                }
+                catch (InterruptedException e)
+                {
+                    Bot.errorLog.print(this, e);
+                }
+                
+                if (currentTeam == teams.size())
+                {
+                    currentTeam = 0;
+                }
+                num = r.nextInt(users.size());
+                teams.get(currentTeam).add(users.remove(num));
+                
+                mentions = new ArrayList<String>();
+                for (IUser user : teams.get(currentTeam))
+                {
+                    mentions.add(user.mention() + " \n(" + user.getDisplayName(event.getGuildObject().getGuild()) + ")");
+                }
+                
+                final int team = currentTeam;
+                final List<String> finalMentions = mentions;
+                
+                RequestBuffer.request(() -> messages.get(team).edit(this.bot.createListEmbeds("Team " + (team + 1), finalMentions, 25, true).get(0))).get();
+                
+                currentTeam++;
+            }
         }
+        this.bot.sendMessage("The teams are finished, master.", event.getMessage().getChannel(), Colors.GREEN);
     }
 
     /**
@@ -133,12 +238,20 @@ public class TeamCommand extends Command
     {
         return "```"
                 + "Team Command \n"   
-                + "<User> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
                 + "Forms teams from the mentioned users. \n\n\n"
                 + "Usage: \n\n"
                 + Bot.getPrefix()+"team 4 @user @user @user @user @user @user @user @user \n\n"
                 + "The 4 indicates that you want 4 teams. You can change that number to anything above 0. "
-                + "If you leave it out, the bot will create 2 teams by default."
+                + "If you leave it out, the bot will create 2 teams by default.\n\n\n"
+                + "You can also mention roles to make the bot use every user that has that role. \n\n"
+                + Bot.getPrefix()+"team 6 @role\n\n\n"
+                + "If you add the word 'slow' AFTER the desired number of teams the bot will fill the teams with a default delay of 5 seconds "
+                + "between every user. \n\n"
+                + Bot.getPrefix()+"team 4 slow @user @user @user @user @user @user @user @user\n\n"
+                + "To use a custom delay between 0 and 300 seconds simply add the number with parenthesis right after the slow keyword.\n\n"
+                + Bot.getPrefix()+"team 4 slow (10) @user @user @user @user @user @user @user @user\n\n"
+                + "To have the bot use a 10 second delay between each user."
                 + "```";
     }
 }

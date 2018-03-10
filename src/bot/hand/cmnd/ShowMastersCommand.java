@@ -9,6 +9,7 @@ import bowt.cmnd.Command;
 import bowt.cmnd.CommandCooldown;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.util.perm.UserPermissions;
 
 /**
  * @author &#8904
@@ -24,7 +25,7 @@ public class ShowMastersCommand extends Command
      */
     public ShowMastersCommand(String[] validExpressions, int permission, Bot bot)
     {
-        super(validExpressions, permission);
+        super(validExpressions, permission, true);
         this.bot = bot;
     }
     
@@ -34,7 +35,7 @@ public class ShowMastersCommand extends Command
      */
     public ShowMastersCommand(List<String> validExpressions, int permission, Bot bot)
     {
-        super(validExpressions, permission);
+        super(validExpressions, permission, true);
         this.bot = bot;
     }
 
@@ -75,7 +76,7 @@ public class ShowMastersCommand extends Command
     {
         return "```"
                 + "Show Masters Command \n"
-                + "<User> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
                 + "This command will show the users that have owner and master permissions on this server. \n\n\n"
                 + "Related Commands: \n"
                 + "- master \n"

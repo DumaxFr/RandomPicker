@@ -4,12 +4,12 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.List;
 
+import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.evnt.impl.CommandEvent;
+import bowt.util.perm.UserPermissions;
 
 import com.vdurmont.emoji.EmojiManager;
-
-import core.Main;
 
 /**
  * @author &#8904
@@ -49,7 +49,7 @@ public class ClearNoHupLogsCommand extends Command
         }
         catch (FileNotFoundException e) 
         {
-            Main.log.print(e);
+            Bot.errorLog.print(this, e);
         }
         
     }
@@ -62,7 +62,7 @@ public class ClearNoHupLogsCommand extends Command
     {
         return "```"
                 + "Clear nohup Logs Command \n"
-                + "<Creator> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
                 + "This command will clear the nohup file. \n\n\n"
                 + "Related Commands: \n"
                 + "- getnohuplogs"

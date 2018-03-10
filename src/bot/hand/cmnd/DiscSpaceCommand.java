@@ -16,7 +16,7 @@ import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
-import core.Main;
+import bowt.util.perm.UserPermissions;
 
 /**
  * @author &#8904
@@ -64,7 +64,7 @@ public class DiscSpaceCommand extends Command
         }
         catch(Exception e)
         {
-            Main.log.print(e);
+            Bot.errorLog.print(this, e);
         }
         bot.sendMessage("```Total: "+jarFolderSize+"\n\n"
                 +"Database: "+dbFolderSize+"\n"
@@ -92,7 +92,7 @@ public class DiscSpaceCommand extends Command
         }
         catch (Exception e)
         {
-            Main.log.print(e);
+            Bot.errorLog.print(this, e);
         }
         return null;
     }
@@ -125,7 +125,7 @@ public class DiscSpaceCommand extends Command
         }
         catch (IOException e)
         {
-            Main.log.print(e);
+            Bot.errorLog.print(this, e);
         }
         return size.get();
     }
@@ -154,7 +154,7 @@ public class DiscSpaceCommand extends Command
     {
         return "```"
                 + "Disc Space Command \n"
-                + "<Creator> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
                 + "Shows how much disc space the bot takes. \n\n\n"
                 + "Related Commands: \n"
                 + "- stats \n"

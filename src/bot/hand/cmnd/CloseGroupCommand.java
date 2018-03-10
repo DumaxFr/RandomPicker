@@ -19,7 +19,7 @@ import core.Main;
  * @author &#8904
  *
  */
-public class LeaveGroupCommand extends Command
+public class CloseGroupCommand extends Command
 {
     private Bot bot;
     private Main main;
@@ -28,14 +28,14 @@ public class LeaveGroupCommand extends Command
      * @param validExpressions
      * @param permission
      */
-    public LeaveGroupCommand(String[] validExpressions, int permission, Bot bot, Main main) 
+    public CloseGroupCommand(String[] validExpressions, int permission, Bot bot, Main main) 
     {
         super(validExpressions, permission, true);
         this.bot = bot;
         this.main = main;
     }
     
-    public LeaveGroupCommand(List<String> validExpressions, int permission, Bot bot, Main main) 
+    public CloseGroupCommand(List<String> validExpressions, int permission, Bot bot, Main main) 
     {
         super(validExpressions, permission, true);
         this.bot = bot;
@@ -48,7 +48,7 @@ public class LeaveGroupCommand extends Command
     @Override
     public Command copy()
     {
-        return new LeaveGroupCommand(this.validExpressions, this.permission, this.bot, this.main);
+        return new CloseGroupCommand(this.validExpressions, this.permission, this.bot, this.main);
     }
 
     /**
@@ -66,21 +66,14 @@ public class LeaveGroupCommand extends Command
         }
         else
         {
-            this.bot.sendMessage("You have to add the name of the group. Example: '" + Bot.getPrefix() + "leave groupname'.", event.getMessage().getChannel(), Colors.RED);
+            this.bot.sendMessage("You have to add the name of the group. Example: '" + Bot.getPrefix() + "close groupname'.", event.getMessage().getChannel(), Colors.RED);
             return;
         }
         Group group = manager.getGroupByName(name);
-        if (group == null)
+        if (group != null && manager.remove(name))
         {
-            this.bot.sendMessage("That group does not exist.", event.getMessage().getChannel(), Colors.RED);
-            return;
+            RequestBuffer.request(() -> event.getMessage().addReaction(EmojiManager.getForAlias("white_check_mark")));
         }
-        if (group.removeMember(event.getAuthor()))
-        {
-            RequestBuffer.request(() -> event.getMessage().addReaction(EmojiManager.getForAlias("white_check_mark"))).get();
-            return;
-        }
-        this.bot.sendMessage("You are not part of that group.", event.getMessage().getChannel(), Colors.RED);
     }
 
     /**
@@ -90,17 +83,16 @@ public class LeaveGroupCommand extends Command
     public String getHelp()
     {
         return "```"
-                + "Leave Group Command \n"   
+                + "Close Group Command \n"   
                 + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
-                + "Makes you leave the group with the given name if it exists. \n\n\n"
+                + "Closes an existing group with the given name. \n\n\n"
                 + "Usage: \n\n"
-                + Bot.getPrefix() + "leave group1"
+                + Bot.getPrefix() + "close team1"
                 + "\n\n\n"
                 + "Related commands: \n"
                 + "- create\n"
-                + "- close\n"
-                + "- remove\n"
-                + "- join"
+                + "- join\n"
+                + "- leave"
                 + "```";
     }
 }

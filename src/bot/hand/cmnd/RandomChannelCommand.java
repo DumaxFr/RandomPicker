@@ -6,10 +6,12 @@ import java.util.Random;
 
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
+import sx.blah.discord.handle.obj.StatusType;
 import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.util.perm.UserPermissions;
 import core.Main;
 
 /**
@@ -27,14 +29,14 @@ public class RandomChannelCommand extends Command
      */
     public RandomChannelCommand(String[] validExpressions, int permission, Bot bot, Main main) 
     {
-        super(validExpressions, permission);
+        super(validExpressions, permission, true);
         this.bot = bot;
         this.main = main;
     }
     
     public RandomChannelCommand(List<String> validExpressions, int permission, Bot bot, Main main) 
     {
-        super(validExpressions, permission);
+        super(validExpressions, permission, true);
         this.bot = bot;
         this.main = main;
     }
@@ -62,30 +64,62 @@ public class RandomChannelCommand extends Command
         }
         List<IUser> allUsers = null;
         List<IUser> users = new ArrayList<IUser>();
-        List<IVoiceChannel> channels = event.getGuildObject().getGuild().getVoiceChannels();
-        IVoiceChannel wantedChannel = null;
-        for(IVoiceChannel voiceChannel : channels){
-            if(voiceChannel.getConnectedUsers().contains(event.getAuthor())){
-                wantedChannel = voiceChannel;
+        
+        if (event.getMessage().getChannelMentions().isEmpty())
+        {
+            List<IVoiceChannel> channels = event.getGuildObject().getGuild().getVoiceChannels();
+            IVoiceChannel wantedChannel = null;
+            for(IVoiceChannel voiceChannel : channels){
+                if(voiceChannel.getConnectedUsers().contains(event.getAuthor())){
+                    wantedChannel = voiceChannel;
+                }
+            }
+            if(wantedChannel != null){
+                allUsers = wantedChannel.getConnectedUsers();
+            }else{
+                this.bot.sendMessage("You have to be in a voicechannel or tag a textchannel with a #.", event.getMessage().getChannel(), Colors.RED);
+                return;
             }
         }
-        if(wantedChannel != null){
-            allUsers = wantedChannel.getConnectedUsers();
-        }else{
-            this.bot.sendMessage("You have to be in a voicechannel.", event.getMessage().getChannel(), Colors.RED);
-            return;
+        else
+        {
+            try
+            {
+                allUsers = event.getMessage().getChannelMentions().get(0).getUsersHere();
+            }
+            catch (Exception e)
+            {
+                Bot.errorLog.print(e);
+            }
         }
         for(IUser user : allUsers)
         {
-            if (!user.isBot())
+            if (event.getMessage().getContent().contains("online"))
             {
-                if (exceptUser && user.equals(event.getAuthor()))
+                if (!user.isBot() && !user.getPresence().getStatus().equals(StatusType.OFFLINE) && !user.getPresence().getStatus().equals(StatusType.INVISIBLE))
                 {
-                    
+                    if (exceptUser && user.equals(event.getAuthor()))
+                    {
+                        
+                    }
+                    else
+                    {
+                        users.add(user);
+                    }
                 }
-                else
+            }
+            else
+            {
+                if (!user.isBot())
                 {
-                    users.add(user);
+                    if (exceptUser && user.equals(event.getAuthor()))
+                    {
+                        
+                    }
+                    else
+                    {
+                        users.add(user);
+                    }
                 }
             }
         }
@@ -97,9 +131,11 @@ public class RandomChannelCommand extends Command
         catch (InterruptedException e)
         {
         }
-        int num = r.nextInt(users.size());
-        this.bot.sendMessage(users.get(num).mention(), event.getChannel(), Colors.PURPLE);
-        Main.channelLog.print("Picked option " + (num + 1) + " out of " + users.size() + ".");
+        if (users.size() > 0)
+        {
+            int num = r.nextInt(users.size());
+            this.bot.sendMessage(users.get(num).mention() + " \n(" + users.get(num).getDisplayName(event.getGuildObject().getGuild()) + ")", event.getChannel(), Colors.PURPLE);
+        }
     }
 
     /**
@@ -110,9 +146,15 @@ public class RandomChannelCommand extends Command
     {
         return "```"
                 + "Random User In Channel Command \n"   
-                + "<User> \n\n"
-                + "Picks a random non-bot user that is currently in the same voicechannel as you. \n"
-                + "You can extend the command like so '"+Bot.getPrefix()+"channel n' so it wont choose you."
+                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "Picks a random non-bot user from a channel. \n\n"
+                + "Usage:\n"
+                + "To pick from a voicechannel simply use '"+Bot.getPrefix()+"channel' while connected to that channel.\n\n"
+                + "To pick from users that have read permissions in a certain textchannel tag the channel with a # after the command like so:\n\n"
+                + Bot.getPrefix()+"channel #channel\n\n\n"
+                + "You can extend the command like this '"+Bot.getPrefix()+"channel n' or '"+Bot.getPrefix()+"channel n #channel'so it wont choose you.\n\n\n"
+                + "If you only want to pick users from textchannels that are currently online add the word 'online' after the channel tag.\n\n"
+                + Bot.getPrefix()+"channel #channel online"
                 + "```";
     }
 }

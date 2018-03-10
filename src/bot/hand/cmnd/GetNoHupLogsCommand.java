@@ -4,10 +4,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
 
+import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cmnd.CommandCooldown;
 import bowt.evnt.impl.CommandEvent;
-import core.Main;
+import bowt.util.perm.UserPermissions;
 
 /**
  * @author &#8904
@@ -47,7 +48,7 @@ public class GetNoHupLogsCommand extends Command
         }
         catch (FileNotFoundException e) 
         {
-            Main.log.print(e);
+            Bot.errorLog.print(this, e);
         }
     }
 
@@ -59,7 +60,7 @@ public class GetNoHupLogsCommand extends Command
     {
         return "```"
                 + "Get nohup Logs Command \n"
-                + "<Creator> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
                 + "This command will send you a file containing the nohup output."
                 + "```";
     }

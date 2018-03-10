@@ -13,6 +13,7 @@ import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.util.perm.UserPermissions;
 import core.Main;
 
 /**
@@ -70,7 +71,7 @@ public class DirectoryCommand extends Command
         }
         catch (IOException e)
         {
-            Main.log.print(e);
+            Bot.errorLog.print(this, e);
             this.bot.sendMessage("An error has occurred. Check your path.", event.getChannel(), Colors.RED);
         }
     }
@@ -83,7 +84,7 @@ public class DirectoryCommand extends Command
     {
         return "```"
                 + "Directory Command \n"
-                + "<Creator> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
                 + "Shows the structure of the current or the given directory. \n\n\n"
                 + "Related Commands: \n"
                 + "- deletefile"
