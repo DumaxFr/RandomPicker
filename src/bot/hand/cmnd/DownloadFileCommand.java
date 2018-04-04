@@ -14,6 +14,7 @@ import java.util.List;
 import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.util.perm.UserPermissions;
 
 import com.vdurmont.emoji.EmojiManager;
@@ -101,24 +102,15 @@ public class DownloadFileCommand extends Command
      * @see bowtie.bot.obj.Command#getHelp()
      */
     @Override
-    public String getHelp() 
+    public String getHelp(GuildObject guild) 
     {
         return "```"
                 + "Download File Command \n"
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "Downloads the uploaded file to the given location. \n\n\n"
                 + "Related Commands: \n"
                 + "- directory\n"
                 + "- deletefile"
                 + "```";
-    }
-
-    /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new DownloadFileCommand(this.validExpressions, this.permission, this.bot, this.main);
     }
 }

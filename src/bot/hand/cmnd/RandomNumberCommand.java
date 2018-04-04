@@ -7,6 +7,7 @@ import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.util.perm.UserPermissions;
 import core.Main;
 
@@ -38,30 +39,19 @@ public class RandomNumberCommand extends Command
     }
 
     /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new RandomNumberCommand(this.validExpressions, this.permission, this.bot, this.main);
-    }
-
-    /**
      * @see bowt.cmnd.Command#execute(bowt.evnt.impl.CommandEvent)
      */
     @Override
     public void execute(CommandEvent event)
     {
         String[] parts = event.getMessage().getContent().trim().toLowerCase().split(" ");
-        if (parts.length < 2)
-        {
-            this.bot.sendMessage("You have to add the range from which the bot should pick a number. Example: '" + Bot.getPrefix() + "roll 10'.", event.getMessage().getChannel(), Colors.RED);
-            return;
-        }
         int number = 6;
         try
         {
-            number = Integer.parseInt(parts[1].trim());
+            if (parts.length > 1)
+            {
+                number = Integer.parseInt(parts[1].trim());
+            }
         }
         catch (NumberFormatException e)
         {
@@ -74,7 +64,7 @@ public class RandomNumberCommand extends Command
         Random r = new Random();
         try
         {
-            Thread.sleep(r.nextInt(50));
+            Thread.sleep(r.nextInt(200));
         }
         catch (InterruptedException e)
         {
@@ -87,14 +77,16 @@ public class RandomNumberCommand extends Command
      * @see bowt.cmnd.Command#getHelp()
      */
     @Override
-    public String getHelp()
+    public String getHelp(GuildObject guild)
     {
         return "```"
                 + "Roll Command \n"   
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
-                + "Rolls a random number between 1 and the number you gave it. \n\n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
+                + "Rolls a random number between 1 and the number you gave it. If you don't specify a number then "
+                + "it will pick from 1-6.\n\n\n"
                 + "Usage: \n\n"
-                + Bot.getPrefix() + "roll 6"
+                + Bot.getPrefix() + "roll 10\n"
+                + Bot.getPrefix() + "roll"
                 + "```";
     }
 }

@@ -8,6 +8,7 @@ import bowt.cmnd.Command;
 import bowt.cmnd.CommandCooldown;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.util.perm.UserPermissions;
 
 import com.vdurmont.emoji.EmojiManager;
@@ -48,7 +49,7 @@ public class AddMasterCommand extends Command
     @Override
     public void execute(CommandEvent event)
     {
-        new CommandCooldown(this, 2000).startTimer();
+        new CommandCooldown(this, 2000, event.getGuildObject()).startTimer();
         List<IUser> mentions = event.getMessage().getMentions();
         if (mentions.isEmpty())
         {
@@ -82,11 +83,11 @@ public class AddMasterCommand extends Command
      * @see bowtie.bot.obj.Command#getHelp()
      */
     @Override
-    public String getHelp() 
+    public String getHelp(GuildObject guild) 
     {
         return "```"
                 + "Add Master Command \n"   
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "Gives the mentioned user master permissions for this bot. \n\n"
                 + "Users with master permissions can execute any user/master command, so "
                 + "be careful who you give this power to. \n\n"
@@ -99,14 +100,5 @@ public class AddMasterCommand extends Command
                 + "- owner \n"
                 + "- noowner"
                 + "```";
-    }
-
-    /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new AddMasterCommand(this.validExpressions, this.permission, this.bot, this.main);
     }
 }

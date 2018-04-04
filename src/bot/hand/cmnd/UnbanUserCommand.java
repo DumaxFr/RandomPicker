@@ -7,6 +7,8 @@ import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
+import bowt.util.perm.UserPermissions;
 import core.Main;
 
 /**
@@ -37,15 +39,6 @@ public class UnbanUserCommand extends Command
     }
 
     /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new UnbanUserCommand(this.validExpressions, this.permission, this.bot, this.main);
-    }
-
-    /**
      * @see bowt.cmnd.Command#execute(bowt.evnt.impl.CommandEvent)
      */
     @Override
@@ -64,11 +57,11 @@ public class UnbanUserCommand extends Command
      * @see bowt.cmnd.Command#getHelp()
      */
     @Override
-    public String getHelp()
+    public String getHelp(GuildObject guild)
     {
         return "```"
                 + "Unban User Command \n"   
-                + "<Creator> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "Unbans the mentioned users from using any features of the bot. \n\n"
                 + "Example: \n\n"
                 + Bot.getPrefix()+"unban @user"

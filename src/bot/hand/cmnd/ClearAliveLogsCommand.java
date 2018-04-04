@@ -7,6 +7,7 @@ import java.util.List;
 import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.util.perm.UserPermissions;
 
 import com.vdurmont.emoji.EmojiManager;
@@ -58,23 +59,14 @@ public class ClearAliveLogsCommand extends Command
      * @see bowtie.bot.obj.Command#getHelp()
      */
     @Override
-    public String getHelp() 
+    public String getHelp(GuildObject guild) 
     {
         return "```"
                 + "Clear Alivelogs Command \n"
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "This command will clear the alivelog file. \n\n\n"
                 + "Related Commands: \n"
                 + "- getalivelogs"
                 + "```";
-    }
-
-    /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new ClearAliveLogsCommand(this.validExpressions, this.permission);
     }
 }

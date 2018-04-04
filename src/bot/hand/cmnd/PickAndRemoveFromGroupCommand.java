@@ -20,7 +20,7 @@ import core.Main;
  * @author &#8904
  *
  */
-public class RandomFromGroupCommand extends Command
+public class PickAndRemoveFromGroupCommand extends Command
 {
     private Bot bot;
     private Main main;
@@ -29,14 +29,14 @@ public class RandomFromGroupCommand extends Command
      * @param validExpressions
      * @param permission
      */
-    public RandomFromGroupCommand(String[] validExpressions, int permission, Bot bot, Main main) 
+    public PickAndRemoveFromGroupCommand(String[] validExpressions, int permission, Bot bot, Main main) 
     {
         super(validExpressions, permission, true);
         this.bot = bot;
         this.main = main;
     }
     
-    public RandomFromGroupCommand(List<String> validExpressions, int permission, Bot bot, Main main) 
+    public PickAndRemoveFromGroupCommand(List<String> validExpressions, int permission, Bot bot, Main main) 
     {
         super(validExpressions, permission, true);
         this.bot = bot;
@@ -59,7 +59,7 @@ public class RandomFromGroupCommand extends Command
         }
         else
         {
-            this.bot.sendMessage("You have to add the name of the group. Example: '" + Bot.getPrefix() + "group groupname'.", event.getMessage().getChannel(), Colors.RED);
+            this.bot.sendMessage("You have to add the name of the group. Example: '" + Bot.getPrefix() + "leave groupname'.", event.getMessage().getChannel(), Colors.RED);
             return;
         }
         if (parts.length > 2)
@@ -98,8 +98,12 @@ public class RandomFromGroupCommand extends Command
             catch (InterruptedException e)
             {
             }
+            
             int num = r.nextInt(users.size());
-            this.bot.sendMessage(users.get(num).mention(false) + " \n(" + users.get(num).getDisplayName(event.getGuildObject().getGuild()) + ")", event.getChannel(), Colors.PURPLE);
+            IUser picked = users.get(num);
+            group.removeMember(picked);
+            this.bot.sendMessage(picked.mention(false) + " \n(" + picked.getDisplayName(event.getGuildObject().getGuild()) + ")\n\n"
+                    + group.getMembers().size() + (group.getMembers().size() == 1 ? " member remains" : " members remain") +" in the group '" + group.getName() + "'.", event.getChannel(), Colors.PURPLE);
         }
     }
 
@@ -110,13 +114,14 @@ public class RandomFromGroupCommand extends Command
     public String getHelp(GuildObject guild)
     {
         return "```"
-                + "Random User From Group Command \n"   
+                + "Pick And Remove From Group Command \n"   
                 + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
-                + "Picks a random user from a group with the given name. \n\n"
+                + "Picks a random user from a group with the given name. The picked user is removed from the group "
+                + "immediately after. \n\n"
                 + "Add the word 'online' after the groupname to only pick people who are currently online.\n\n\n"
                 + "Usage:\n\n"
-                + Bot.getPrefix() + "group group1\n\n"
-                + Bot.getPrefix() + "group group1 online"
+                + Bot.getPrefix() + "pickremove group1\n\n"
+                + Bot.getPrefix() + "pickremove group1 online"
                 + "```";
     }
 }

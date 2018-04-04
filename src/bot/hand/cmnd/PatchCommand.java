@@ -8,6 +8,7 @@ import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.util.perm.UserPermissions;
 import core.Main;
 
@@ -56,7 +57,7 @@ public class PatchCommand extends Command
                 return;
             }
             String url = attachments.get(0).getUrl();
-            this.bot.sendMessage("Patching..", event.getMessage().getChannel(), Colors.GREEN, true);
+            this.bot.sendMessage("Patching..", event.getMessage().getChannel(), Colors.GREEN);
             this.main.kill(false);
             File jar = null;
             try
@@ -76,23 +77,14 @@ public class PatchCommand extends Command
      * @see bowtie.bot.obj.Command#getHelp()
      */
     @Override
-    public String getHelp() 
+    public String getHelp(GuildObject guild) 
     {
         return "```"
                 + "Patch Command \n"
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "Replaces the bot file with the attached one and reboots the bot. \n\n\n"
                 + "Related Commands: \n"
                 + "- reboot"
                 + "```";
-    }
-
-    /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new PatchCommand(this.validExpressions, this.permission, this.bot, this.main);
     }
 }

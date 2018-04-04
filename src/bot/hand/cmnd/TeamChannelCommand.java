@@ -12,6 +12,7 @@ import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.util.perm.UserPermissions;
 import core.Main;
 
@@ -40,15 +41,6 @@ public class TeamChannelCommand extends Command
         super(validExpressions, permission, true);
         this.bot = bot;
         this.main = main;
-    }
-
-    /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new TeamChannelCommand(this.validExpressions, this.permission, this.bot, this.main);
     }
 
     /**
@@ -172,16 +164,16 @@ public class TeamChannelCommand extends Command
         {
             teams.add(new ArrayList<IUser>());
         }
-        Random r = new Random();
         int num = 0;
         int currentTeam = 0;
         if (!slowmode)
         {
             while (!users.isEmpty())
             {
+                Random r = new Random();
                 try
                 {
-                    Thread.sleep(r.nextInt(50));
+                    Thread.sleep(r.nextInt(200));
                 }
                 catch (InterruptedException e)
                 {
@@ -199,7 +191,6 @@ public class TeamChannelCommand extends Command
                 }
                 catch (InterruptedException e)
                 {
-                    Bot.errorLog.print(this, e);
                 }
             }
             List<String> mentions = null;
@@ -208,7 +199,7 @@ public class TeamChannelCommand extends Command
                 mentions = new ArrayList<String>();
                 for (IUser user : teams.get(i))
                 {
-                    mentions.add(user.mention() + " \n(" + user.getDisplayName(event.getGuildObject().getGuild()) + ")");
+                    mentions.add(user.mention(false) + " \n(" + user.getDisplayName(event.getGuildObject().getGuild()) + ")");
                 }
                 this.bot.sendListMessage("Team " + (i + 1), mentions, event.getChannel(), 25, true);
             }
@@ -232,9 +223,8 @@ public class TeamChannelCommand extends Command
                 }
                 catch (InterruptedException e)
                 {
-                    Bot.errorLog.print(this, e);
                 }
-                
+                Random r = new Random();
                 if (currentTeam == teams.size())
                 {
                     currentTeam = 0;
@@ -245,7 +235,7 @@ public class TeamChannelCommand extends Command
                 mentions = new ArrayList<String>();
                 for (IUser user : teams.get(currentTeam))
                 {
-                    mentions.add(user.mention() + " \n(" + user.getDisplayName(event.getGuildObject().getGuild()) + ")");
+                    mentions.add(user.mention(false) + " \n(" + user.getDisplayName(event.getGuildObject().getGuild()) + ")");
                 }
                 
                 final int team = currentTeam;
@@ -263,11 +253,11 @@ public class TeamChannelCommand extends Command
      * @see bowt.cmnd.Command#getHelp()
      */
     @Override
-    public String getHelp()
+    public String getHelp(GuildObject guild)
     {
         return "```"
                 + "Team Channel Command \n"   
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "Forms teams from the users that are connected to the same voicechannel as you. \n\n\n"
                 + "Usage: \n\n"
                 + Bot.getPrefix()+"teamchannel 4 \n\n"

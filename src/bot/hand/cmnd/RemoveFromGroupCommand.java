@@ -10,6 +10,7 @@ import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.util.perm.UserPermissions;
 import core.Main;
 
@@ -38,15 +39,6 @@ public class RemoveFromGroupCommand extends Command
         super(validExpressions, permission, true);
         this.bot = bot;
         this.main = main;
-    }
-
-    /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new RemoveFromGroupCommand(this.validExpressions, this.permission, this.bot, this.main);
     }
 
     /**
@@ -100,11 +92,11 @@ public class RemoveFromGroupCommand extends Command
      * @see bowt.cmnd.Command#getHelp()
      */
     @Override
-    public String getHelp()
+    public String getHelp(GuildObject guild)
     {
         return "```"
                 + "Remove From Group Command \n"   
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "Removes the mentioned user/s from the group with the given name. \n\n\n"
                 + "Usage: \n\n"
                 + Bot.getPrefix() + "remove group1 @user\n\n\n"

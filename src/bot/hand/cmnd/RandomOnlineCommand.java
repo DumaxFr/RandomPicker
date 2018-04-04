@@ -10,6 +10,7 @@ import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.util.perm.UserPermissions;
 import core.Main;
 
@@ -41,15 +42,6 @@ public class RandomOnlineCommand extends Command
     }
 
     /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new RandomOnlineCommand(this.validExpressions, this.permission, this.bot, this.main);
-    }
-
-    /**
      * @see bowt.cmnd.Command#execute(bowt.evnt.impl.CommandEvent)
      */
     @Override
@@ -64,18 +56,69 @@ public class RandomOnlineCommand extends Command
                 users.add(user);
             }
         }
-        Random r = new Random();
+        
+        int picks = 1;
+        String[] parts = event.getFixedContent().split(" ");
+        
         try
         {
-            Thread.sleep(r.nextInt(50));
+            picks = Integer.parseInt(parts[1]);
+            
+            if (picks < 1)
+            {
+                picks = 1;
+            }
         }
-        catch (InterruptedException e)
+        catch (Exception e)
         {
+            
         }
-        if(!users.isEmpty())
+        
+        if (picks == 1)
         {
-            int num = r.nextInt(users.size());
-            this.bot.sendMessage(users.get(num).mention() + " \n(" + users.get(num).getDisplayName(event.getGuildObject().getGuild()) + ")", event.getChannel(), Colors.PURPLE);
+            Random r = new Random();
+            try
+            {
+                Thread.sleep(r.nextInt(200));
+            }
+            catch (InterruptedException e)
+            {
+            }
+            if (!users.isEmpty())
+            {
+                int num = r.nextInt(users.size());
+                this.bot.sendMessage(users.get(num).mention(false) + " \n(" + users.get(num).getDisplayName(event.getGuildObject().getGuild()) + ")", event.getChannel(), Colors.PURPLE);
+            }
+        }
+        else
+        {
+            if (picks > users.size())
+            {
+                this.bot.sendMessage("There are not enough people online on this server.", event.getChannel(), Colors.RED);
+                return;
+            }
+            
+            List<String> mentions = new ArrayList<>();
+            
+            while (mentions.size() < picks)
+            {
+                Random r = new Random();
+                try
+                {
+                    Thread.sleep(r.nextInt(200));
+                }
+                catch (InterruptedException e)
+                {
+                }
+                if (!users.isEmpty())
+                {
+                    int num = r.nextInt(users.size());
+                    mentions.add(users.get(num).mention(false) + " \n(" + users.get(num).getDisplayName(event.getGuildObject().getGuild()) + ")");
+                    users.remove(num);
+                }
+            }
+            
+            this.bot.sendListMessage("Picked users", mentions, event.getChannel(), 10, true);
         }
     }
 
@@ -83,12 +126,15 @@ public class RandomOnlineCommand extends Command
      * @see bowt.cmnd.Command#getHelp()
      */
     @Override
-    public String getHelp()
+    public String getHelp(GuildObject guild)
     {
         return "```"
                 + "Random Global User Command \n"   
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "Picks a random non-bot user from the users that are currently online. \n\n"
+                + "You can add a number after the command to specify how many users should be picked.\n\n"
+                + Bot.getPrefix() + "online 5\n\n"
+                + "This picks 5 users."
                 + "```";
     }
 }

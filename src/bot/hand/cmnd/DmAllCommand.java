@@ -8,6 +8,7 @@ import sx.blah.discord.handle.obj.IUser;
 import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.util.perm.UserPermissions;
 import core.Main;
 
@@ -39,15 +40,6 @@ public class DmAllCommand extends Command
     }
 
     /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new DmAllCommand(this.validExpressions, this.permission, this.bot, this.main);
-    }
-
-    /**
      * @see bowt.cmnd.Command#execute(bowt.evnt.impl.CommandEvent)
      */
     @Override
@@ -74,11 +66,11 @@ public class DmAllCommand extends Command
      * @see bowt.cmnd.Command#getHelp()
      */
     @Override
-    public String getHelp()
+    public String getHelp(GuildObject guild)
     {
         return "```"
                 + "DM All Command \n"   
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "Sends a message to the owner of each server the bot is on.\n\n"
                 + "Example: \n\n"
                 + Bot.getPrefix()+"dmall >> hello"

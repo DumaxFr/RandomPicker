@@ -7,6 +7,7 @@ import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.util.perm.UserPermissions;
 
 import com.vdurmont.emoji.EmojiManager;
@@ -73,11 +74,11 @@ public class RemoveMasterCommand extends Command{
      * @see bowtie.bot.obj.Command#getHelp()
      */
     @Override
-    public String getHelp() 
+    public String getHelp(GuildObject guild) 
     {
         return "```"
                 + "Remove Master Command \n"
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "Takes the master permissions of the mentioned user away. \n\n\n"
                 + "Related Commands: \n"
                 + "- master \n"
@@ -85,14 +86,5 @@ public class RemoveMasterCommand extends Command{
                 + "- owner \n"
                 + "- noowner"
                 + "```";
-    }
-
-    /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new RemoveMasterCommand(this.validExpressions, this.permission, this.bot, this.main);
     }
 }

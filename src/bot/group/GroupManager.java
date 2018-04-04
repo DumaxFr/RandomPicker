@@ -1,8 +1,8 @@
 package bot.group;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import bowt.guild.GuildObject;
 import db.DatabaseAccess;
@@ -13,15 +13,15 @@ import db.DatabaseAccess;
  */
 public class GroupManager
 {
-    private static CopyOnWriteArrayList<GroupManager> groupManagers = new CopyOnWriteArrayList<GroupManager>();
-    private List<Group> groups;
+    private static ConcurrentHashMap<Long, GroupManager> groupManagers = new ConcurrentHashMap<Long, GroupManager>();
+    private Map<String, Group> groups;
     private final GuildObject guild;
     protected static DatabaseAccess db;
 
     public GroupManager(GuildObject guild)
     {
         this.guild = guild;
-        this.groups = new ArrayList<Group>();
+        this.groups = new HashMap<String, Group>();
     }
     
     public GuildObject getGuild()
@@ -31,17 +31,15 @@ public class GroupManager
     
     public Group getGroupByName(String name)
     {
-        for (Group group : groups)
+        Group group = groups.get(name);
+        if (group != null)
         {
-            if (group.getName().equals(name))
-            {
-                return group;
-            }
+            return group;
         }
         if (db.existingGroup(guild.getStringID(), name))
         {
-            Group group = db.getGroup(guild.getStringID(), name);
-            groups.add(group);
+            group = db.getGroup(guild.getStringID(), name);
+            groups.put(group.getName(), group);
             return group;
         }
         return null;
@@ -51,7 +49,7 @@ public class GroupManager
     {
         if (db.addGroup(guild.getStringID(), group.getName(), group.getDate()))
         {
-            this.groups.add(group);
+            this.groups.put(group.getName(), group);
             return true;
         }
         return false;
@@ -59,16 +57,14 @@ public class GroupManager
     
     public boolean remove(String name)
     {
-        for (Group group : groups)
+        Group group = groups.remove(name);
+            
+        if (group != null)
         {
-            if (group.getName().equals(name))
+            if (db.removeGroup(guild.getStringID(), name))
             {
-                if (db.removeGroup(guild.getStringID(), name))
-                {
-                    db.removeGroupTimer(guild.getStringID(), name);
-                    this.groups.remove(group);
-                    return true;
-                }
+                db.removeGroupTimer(guild.getStringID(), name);
+                return true;
             }
         }
         return false;
@@ -81,7 +77,7 @@ public class GroupManager
     
     public static void addManager(GroupManager manager)
     {
-        groupManagers.add(manager);
+        groupManagers.put(manager.getGuild().getLongID(), manager);
     }
     
     /**
@@ -92,15 +88,13 @@ public class GroupManager
      */
     public static GroupManager getManagerForGuild(GuildObject guild)
     {
-        for (GroupManager manager : groupManagers)
+        GroupManager manager = groupManagers.get(guild.getLongID());
+        if (manager != null)
         {
-            if (manager.getGuild().equals(guild))
-            {
-                return manager;
-            }
+            return manager;
         }
-        GroupManager newManager = new GroupManager(guild);
-        addManager(newManager);
-        return newManager;
+        manager = new GroupManager(guild);
+        addManager(manager);
+        return manager;
     }
 }

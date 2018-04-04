@@ -10,6 +10,7 @@ import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.util.perm.UserPermissions;
 
 import com.vdurmont.emoji.EmojiManager;
@@ -41,15 +42,6 @@ public class CreateGroupCommand extends Command
         super(validExpressions, permission, true);
         this.bot = bot;
         this.main = main;
-    }
-
-    /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new CreateGroupCommand(this.validExpressions, this.permission, this.bot, this.main);
     }
 
     /**
@@ -186,6 +178,10 @@ public class CreateGroupCommand extends Command
             }
             RequestBuffer.request(() -> event.getMessage().addReaction(EmojiManager.getForAlias("white_check_mark"))).get();
         }
+        else
+        {
+            bot.sendMessage("That group does already exist.", event.getChannel(), Colors.RED);
+        }
     }
     
     private int getNumber(String text, String replace)
@@ -206,11 +202,11 @@ public class CreateGroupCommand extends Command
      * @see bowt.cmnd.Command#getHelp()
      */
     @Override
-    public String getHelp()
+    public String getHelp(GuildObject guild)
     {
         return "```"
                 + "Create Group Command \n"   
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "Creates a new group with the given name. \n\n\n"
                 + "Usage: \n\n"
                 + Bot.getPrefix() + "create team1"

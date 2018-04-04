@@ -1,5 +1,7 @@
 package db;
 
+import java.sql.Blob;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,10 +11,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.SerializationUtils;
+
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.RequestBuffer;
 import sx.blah.discord.util.RequestBuffer.IRequest;
+import bot.auto.AutomatedCommand;
+import bot.auto.DummyMessage;
+import bot.auto.SerializableDummyMessage;
 import bot.group.Group;
 import bot.group.GroupManager;
 import bot.group.GroupTimer;
@@ -48,6 +55,24 @@ public class DatabaseAccess extends Database
     @Override
     protected void createTables()
     {
+        try (Statement statement = this.getConnection().createStatement())
+        {
+            statement.execute("CREATE TABLE automatedCommand ("
+                    + "ID INTEGER NOT NULL "
+                    + "PRIMARY KEY GENERATED ALWAYS AS IDENTITY "
+                    + "(START WITH 1, INCREMENT BY 1),"
+                    + "autoID VARCHAR(100), "
+                    + "guildID VARCHAR(100), "
+                    + "interval VARCHAR(100), "
+                    + "lastExecute VARCHAR(100), "
+                    + "message BLOB)");
+            Bot.log.print(this, "Created automatedCommand table.");
+        }
+        catch (SQLException e)
+        {
+            Bot.errorLog.print(this, "Table automatedCommand does already exist.");
+        }
+        
         try (Statement statement = this.getConnection().createStatement())
         {
             statement.execute("CREATE TABLE groupTimers ("
@@ -242,6 +267,128 @@ public class DatabaseAccess extends Database
         return overrides;
     }
     
+    public boolean existingAutomatedCommand(long id)
+    {
+        String sql = "SELECT * FROM automatedCommand WHERE autoID = ?";
+        try (PreparedStatement statement = this.getConnection().prepareStatement(sql))
+        {
+            statement.setLong(1, id);
+            ResultSet result = statement.executeQuery();
+            return result.next();
+        }
+        catch (SQLException e)
+        {
+            Bot.errorLog.print(this, e);
+        }
+        return false;
+    }
+    
+    public boolean addAutomatedCommand(AutomatedCommand auto)
+    {
+        if (!existingAutomatedCommand(auto.getID()))
+        {
+            String sql = "INSERT INTO automatedCommand (autoID, guildID, interval, lastExecute, message) VALUES (?, ?, ?, ?, ?)";
+            try (Connection con = this.getConnection();
+                    PreparedStatement statement = con.prepareStatement(sql))
+            {
+                statement.setLong(1, auto.getID());
+                statement.setString(2, auto.getGuild().getStringID());
+                statement.setLong(3, auto.getInterval());
+                statement.setLong(4, auto.getLastExecuteTime());
+                Blob blob = con.createBlob();
+                blob.setBytes(1, SerializationUtils.serialize(new SerializableDummyMessage(auto.getMessage())));
+                statement.setBlob(5, blob);
+                statement.executeUpdate();
+                return true;
+            }
+            catch (SQLException e)
+            {
+                Bot.errorLog.print(this, e);
+            }
+        }
+        return false;
+    }
+    
+    public List<AutomatedCommand> getAutomatedCommands()
+    {
+        List<AutomatedCommand> autoCommands = new ArrayList<>();
+        String sql = "SELECT * FROM automatedCommand";
+        try (PreparedStatement statement = this.getConnection().prepareStatement(sql))
+        {
+            ResultSet result = statement.executeQuery();
+            while (result.next())
+            {
+                long id = result.getLong("autoID");
+                
+                if (id > AutomatedCommand.currentID)
+                {
+                    AutomatedCommand.currentID = id + 1;
+                }
+                
+                GuildObject guild = main.getBot().getGuildObjectByID(result.getString("guildID"));
+                
+                if (guild == null)
+                {
+                    removeAutomatedCommand(id);
+                    continue;
+                }
+                
+                Blob blob = result.getBlob("message");
+                SerializableDummyMessage ms = SerializationUtils.deserialize(blob.getBytes(1, (int)blob.length()));
+                DummyMessage message = new DummyMessage(main.getBot().getClient(), ms);
+                
+                long interval = result.getLong("interval");
+                long lastExecute = result.getLong("lastExecute");
+                
+                autoCommands.add(new AutomatedCommand(id, message, guild, main, interval, lastExecute));
+            }
+        }
+        catch (SQLException e)
+        {
+            Bot.errorLog.print(this, e);
+        }
+        return autoCommands;
+    }
+    
+    public boolean removeAutomatedCommand(long id)
+    {
+        if (existingAutomatedCommand(id))
+        {
+            String sql = "DELETE FROM automatedCommand WHERE autoID = ?";
+            try (PreparedStatement statement = this.getConnection().prepareStatement(sql))
+            {
+                statement.setLong(1, id);
+                statement.executeUpdate();
+                return true;
+            }
+            catch (SQLException e)
+            {
+                Bot.errorLog.print(this, e);
+            }
+        }
+        return false;
+    }
+    
+    public boolean updateAutomatedCommand(long id, long lastExecute)
+    {
+        if (existingAutomatedCommand(id))
+        {
+            String sql = "UPDATE automatedCommand SET lastExecute = ? WHERE autoID = ?";
+            try (PreparedStatement statement = this.getConnection().prepareStatement(sql))
+            {
+                statement.setLong(1, lastExecute);
+                statement.setLong(2, id);
+                statement.executeUpdate();
+                return true;
+            }
+            catch (SQLException e)
+            {
+                Bot.errorLog.print(this, e);
+            }
+        }
+        return false;
+    }
+    
     public boolean existingGroup(String guildID, String groupName)
     {
         String sql = "SELECT * FROM userGroups WHERE guildID = ? AND groupName = ?";
@@ -332,7 +479,7 @@ public class DatabaseAccess extends Database
     
     public boolean addGroupMember(String guildID, String groupName, String userID)
     {
-        if (!existingGroup(guildID, groupName))
+        if (existingGroup(guildID, groupName))
         {
             String sql = "INSERT INTO groupMembers (guildID, groupName, userID) VALUES (?, ?, ?)";
             try (PreparedStatement statement = this.getConnection().prepareStatement(sql))

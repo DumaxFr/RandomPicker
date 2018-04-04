@@ -8,6 +8,7 @@ import bowt.cmnd.Command;
 import bowt.cmnd.CommandCooldown;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.util.perm.UserPermissions;
 
 import com.vdurmont.emoji.EmojiManager;
@@ -48,7 +49,7 @@ public class AddOwnerCommand extends Command
     @Override
     public void execute(CommandEvent event)
     {
-        new CommandCooldown(this, 2000).startTimer();
+        new CommandCooldown(this, 2000, event.getGuildObject()).startTimer();
         List<IUser> mentions = event.getMessage().getMentions();
         if (mentions.isEmpty())
         {
@@ -90,11 +91,11 @@ public class AddOwnerCommand extends Command
      * @see bowtie.bot.obj.Command#getHelp()
      */
     @Override
-    public String getHelp() 
+    public String getHelp(GuildObject guild) 
     {
         return "```"
                 + "Add Owner Command \n"   
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "Gives the mentioned user owner permissions for this bot. \n\n"
                 + "Users with owner permissions can execute any user/master/owner command, so "
                 + "be careful who you give this power to. \n\n"
@@ -107,14 +108,5 @@ public class AddOwnerCommand extends Command
                 + "- master \n"
                 + "- noowner"
                 + "```";
-    }
-
-    /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new AddOwnerCommand(this.validExpressions, this.permission, this.bot, this.main);
     }
 }

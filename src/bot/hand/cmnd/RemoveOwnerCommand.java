@@ -7,6 +7,7 @@ import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.util.perm.UserPermissions;
 
 import com.vdurmont.emoji.EmojiManager;
@@ -78,11 +79,11 @@ public class RemoveOwnerCommand extends Command{
      * @see bowtie.bot.obj.Command#getHelp()
      */
     @Override
-    public String getHelp() 
+    public String getHelp(GuildObject guild) 
     {
         return "```"
                 + "Remove Owner Command \n"
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "Takes the owner permissions of the mentioned user away. \n"
                 + "Keep in mind that every server needs at least one owner for this bot to fully function. \n\n\n"
                 + "Related Commands: \n"
@@ -91,14 +92,5 @@ public class RemoveOwnerCommand extends Command{
                 + "- owner \n"
                 + "- nomaster"
                 + "```";
-    }
-
-    /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new RemoveOwnerCommand(this.validExpressions, this.permission, this.bot, this.main);
     }
 }

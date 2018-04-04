@@ -6,6 +6,7 @@ import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.util.perm.UserPermissions;
 
 /**
@@ -50,11 +51,11 @@ public class MemoryCommand extends Command
      * @see bowtie.bot.obj.Command#getHelp()
      */
     @Override
-    public String getHelp() 
+    public String getHelp(GuildObject guild) 
     {
         return "```"
                 + "Memory Usage Command \n"
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "This command shows how much memory the bot is currently using. \n\n\n"
                 + "Related Commands: \n"
                 + "- stats \n"
@@ -77,14 +78,5 @@ public class MemoryCommand extends Command
             }
         }
         return String.format("%.2f", actSize)+" "+unit;
-    }
-
-    /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new MemoryCommand(this.validExpressions, this.permission, this.bot);
     }
 }

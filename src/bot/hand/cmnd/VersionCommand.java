@@ -9,6 +9,7 @@ import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.cons.LibConstants;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.prop.Properties;
 import bowt.util.perm.UserPermissions;
 
@@ -63,22 +64,13 @@ public class VersionCommand extends Command
      * @see bowtie.bot.obj.Command#getHelp()
      */
     @Override
-    public String getHelp() 
+    public String getHelp(GuildObject guild) 
     {
         return "```"
                 + "Get Versions Command \n"
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "This will send you information about the current versions of the bot and other libs that are "
                 + "used."
                 + "```";
-    }
-
-    /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new VersionCommand(this.validExpressions, this.permission, this.bot);
     }
 }

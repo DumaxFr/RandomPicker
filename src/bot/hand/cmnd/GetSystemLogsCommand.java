@@ -6,8 +6,8 @@ import java.util.List;
 
 import bowt.bot.Bot;
 import bowt.cmnd.Command;
-import bowt.cmnd.CommandCooldown;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.util.perm.UserPermissions;
 
 /**
@@ -44,7 +44,6 @@ public class GetSystemLogsCommand extends Command
         try 
         {
             event.getMessage().getChannel().sendFile(new File("logs/system_logs.log"));
-            new CommandCooldown(this, 10000).startTimer();;
         }
         catch (FileNotFoundException e) 
         {
@@ -56,23 +55,14 @@ public class GetSystemLogsCommand extends Command
      * @see bowtie.bot.obj.Command#getHelp()
      */
     @Override
-    public String getHelp()
+    public String getHelp(GuildObject guild)
     {
         return "```"
                 + "Get Systemlogs Command \n"
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "This command will send you a file containing the system logs. \n\n\n"
                 + "Related Commands: \n"
                 + "- clearsystemlogs"
                 + "```";
-    }
-
-    /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new GetSystemLogsCommand(this.validExpressions, this.permission);
     }
 }

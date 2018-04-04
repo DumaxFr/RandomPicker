@@ -10,6 +10,7 @@ import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.util.perm.UserPermissions;
 import core.Main;
 
@@ -41,15 +42,6 @@ public class RandomCommand extends Command
     }
 
     /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new RandomCommand(this.validExpressions, this.permission, this.bot, this.main);
-    }
-
-    /**
      * @see bowt.cmnd.Command#execute(bowt.evnt.impl.CommandEvent)
      */
     @Override
@@ -58,6 +50,23 @@ public class RandomCommand extends Command
         List<IUser> users = new ArrayList<IUser>();
         
         boolean hasMentions = false;
+        
+        int picks = 1;
+        String[] parts = event.getFixedContent().split(" ");
+        
+        try
+        {
+            picks = Integer.parseInt(parts[1]);
+            
+            if (picks < 1)
+            {
+                picks = 1;
+            }
+        }
+        catch (Exception e)
+        {
+            
+        }
         
         if (!event.getMessage().getMentions().isEmpty())
         {
@@ -91,19 +100,51 @@ public class RandomCommand extends Command
             return;
         }
         
-        Random r = new Random();
-        try
+        if (picks == 1)
         {
-            Thread.sleep(r.nextInt(50));
+            Random r = new Random();
+            try
+            {
+                Thread.sleep(r.nextInt(200));
+            }
+            catch (InterruptedException e)
+            {
+            }
+            if (!users.isEmpty())
+            {
+                int num = r.nextInt(users.size());
+                this.bot.sendMessage(users.get(num).mention(false) + " \n(" + users.get(num).getDisplayName(event.getGuildObject().getGuild()) + ")", event.getChannel(), Colors.PURPLE);
+            }
         }
-        catch (InterruptedException e)
+        else
         {
-        }
-        
-        if (!users.isEmpty())
-        {
-            int num = r.nextInt(users.size());
-            this.bot.sendMessage(users.get(num).mention() + " \n(" + users.get(num).getDisplayName(event.getGuildObject().getGuild()) + ")", event.getChannel(), Colors.PURPLE);
+            if (picks > users.size())
+            {
+                this.bot.sendMessage("Not enough people to pick from.", event.getChannel(), Colors.RED);
+                return;
+            }
+            
+            List<String> mentions = new ArrayList<>();
+            
+            while (mentions.size() < picks)
+            {
+                Random r = new Random();
+                try
+                {
+                    Thread.sleep(r.nextInt(200));
+                }
+                catch (InterruptedException e)
+                {
+                }
+                if (!users.isEmpty())
+                {
+                    int num = r.nextInt(users.size());
+                    mentions.add(users.get(num).mention(false) + " \n(" + users.get(num).getDisplayName(event.getGuildObject().getGuild()) + ")");
+                    users.remove(num);
+                }
+            }
+            
+            this.bot.sendListMessage("Picked users", mentions, event.getChannel(), 10, true);
         }
     }
 
@@ -111,14 +152,17 @@ public class RandomCommand extends Command
      * @see bowt.cmnd.Command#getHelp()
      */
     @Override
-    public String getHelp()
+    public String getHelp(GuildObject guild)
     {
         return "```"
                 + "Random From Mentioned Command \n"   
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "Picks a random user from the tagged users or roles. \n\n"
                 + Bot.getPrefix() + "random @user @role \n\n"
-                + "This picks from a pool constisting of the mentioned user and every other user that has the mentioned role."
+                + "This picks from a pool constisting of the mentioned user and every other user that has the mentioned role.\n\n\n"
+                + "You can add a number after the command to specify how many users should be picked.\n\n"
+                + Bot.getPrefix() + "random 5 @user @user @role @role\n\n"
+                + "This picks 5 users."
                 + "```";
     }
 }

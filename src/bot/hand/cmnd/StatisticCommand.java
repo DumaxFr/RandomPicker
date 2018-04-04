@@ -2,11 +2,12 @@ package bot.hand.cmnd;
 
 import java.util.List;
 
+import bot.auto.AutomatedCommand;
 import bowt.bot.Bot;
 import bowt.cmnd.Command;
-import bowt.cmnd.CommandCooldown;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.util.perm.UserPermissions;
 import core.Main;
 
@@ -47,14 +48,14 @@ public class StatisticCommand extends Command
     @Override
     public void execute(CommandEvent event)
     {
-        new CommandCooldown(this, 2000);
         String statistics = "```"
                 + "Active guilds: " + this.bot.getGuildCount()+"\n\n"
                 + "Users: " + this.bot.getTotalUserCount()+"\n"
                 + "Owners: "+this.bot.getTotalOwnerCount()+"\n"
                 + "Masters: "+this.bot.getTotalMasterCount()+"\n"
                 + "Banned: "+this.bot.getBannedUsers().size()+"\n"
-                + "Open groups: " + this.main.getDatabase().getGroupCount()
+                + "Open groups: " + this.main.getDatabase().getGroupCount()+"\n"
+                + "Active automations: " + AutomatedCommand.size
                 + "```";
         bot.sendMessage(statistics, event.getMessage().getChannel(), Colors.PURPLE);
     }
@@ -63,25 +64,16 @@ public class StatisticCommand extends Command
      * @see bowtie.bot.obj.Command#getHelp()
      */
     @Override
-    public String getHelp() 
+    public String getHelp(GuildObject guild) 
     {
         return "```"
                 + "Statistics Command \n"
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "This command will show interesting statistics about the bot. \n\n\n"
                 + "Related Commands: \n"
                 + "- threads \n"
                 + "- disc \n"
                 + "- ram"
                 + "```";
-    }
-
-    /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new StatisticCommand(this.validExpressions, this.permission, this.bot, this.main);
     }
 }

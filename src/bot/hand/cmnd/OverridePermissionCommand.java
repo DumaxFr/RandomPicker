@@ -6,6 +6,7 @@ import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.cons.Colors;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.hand.impl.GuildCommandHandler;
 import bowt.util.perm.UserPermissions;
 import core.Main;
@@ -54,62 +55,60 @@ public class OverridePermissionCommand extends Command
             return;
         }
         String commandText = parts[1];
-        List<Command> commands = ((GuildCommandHandler)event.getGuildObject().getCommandHandler()).getCommands();
-        for (Command command : commands)
+        Command command = ((GuildCommandHandler)event.getGuildObject().getCommandHandler()).getCommand(commandText);
+        if (command != null)
         {
-            if (command.isValidExpression(commandText))
+            //desired level
+            int permissionLevel = UserPermissions.getPermissionLevelForString(parts[2]);
+            
+            if (permissionLevel == -1)
             {
-                //desired level
-                int permissionLevel = UserPermissions.getPermissionLevelForString(parts[2]);
-                
-                if (permissionLevel == -1)
-                {
-                    this.bot.sendMessage("Unknown permission level.", event.getChannel(), Colors.RED);
-                    return;
-                }
-                
-                //user level
-                int userPerm = UserPermissions.getPermissionLevel(event.getAuthor(), event.getGuildObject());
-                
-                if (!command.isValidPermission(userPerm))
-                {
-                    this.bot.sendMessage("Your permission level is too low to override this command.", event.getChannel(), Colors.RED);
-                }
-                else if (userPerm < permissionLevel)
-                {
-                    this.bot.sendMessage("You can't change the permission level to anything higher than your own.", event.getChannel(), Colors.RED);
-                }
-                else
-                {
-                    int addResp = command.overridePermission(permissionLevel);
-                    if (addResp == Command.DEFAULT_PERMISSION)
-                    {
-                        this.main.getDatabase().removeOverride(event.getGuildObject().getStringID(), command.getValidExpressions().get(0));
-                        
-                        this.bot.sendMessage("Changed the needed permission level of the '" + command.getValidExpressions().get(0) + "' command "
-                                + "to " + UserPermissions.getPermissionString(permissionLevel) + ".", event.getChannel(), Colors.GREEN);
-                        
-                        Bot.log.print(this, "Changed the needed permission level of the '" + command.getValidExpressions().get(0) + "' command "
-                                + " on '" + event.getGuildObject().getGuild().getName() + "' to " + UserPermissions.getPermissionString(permissionLevel) + ".");
-                    }
-                    else if (addResp == Command.NEW_PERMISSION)
-                    {
-                        this.main.getDatabase().addOverride(event.getGuildObject().getStringID(), command.getValidExpressions().get(0), permissionLevel);
-                        
-                        this.bot.sendMessage("Changed the needed permission level of the '" + command.getValidExpressions().get(0) + "' command "
-                                + "to " + UserPermissions.getPermissionString(permissionLevel) + ".", event.getChannel(), Colors.GREEN);
-                        
-                        Bot.log.print(this, "Changed the needed permission level of the '" + command.getValidExpressions().get(0) + "' command "
-                                + " on '" + event.getGuildObject().getGuild().getName() + "' to " + UserPermissions.getPermissionString(permissionLevel) + ".");
-                    }
-                    else if (addResp == Command.CANT_OVERRIDE)
-                    {
-                        this.bot.sendMessage("The permission level of this command can't be overriden.", event.getChannel(), Colors.RED);
-                    }
-                }
+                this.bot.sendMessage("Unknown permission level.", event.getChannel(), Colors.RED);
                 return;
             }
-        }
+            
+            //user level
+            int userPerm = UserPermissions.getPermissionLevel(event.getAuthor(), event.getGuildObject());
+            
+            if (!command.isValidPermission(userPerm, event.getGuildObject()))
+            {
+                this.bot.sendMessage("Your permission level is too low to override this command.", event.getChannel(), Colors.RED);
+            }
+            else if (userPerm < permissionLevel)
+            {
+                this.bot.sendMessage("You can't change the permission level to anything higher than your own.", event.getChannel(), Colors.RED);
+            }
+            else
+            {
+                int addResp = command.overridePermission(permissionLevel, event.getGuildObject());
+                if (addResp == Command.DEFAULT_PERMISSION)
+                {
+                    this.main.getDatabase().removeOverride(event.getGuildObject().getStringID(), command.getValidExpressions().get(0));
+                    
+                    this.bot.sendMessage("Changed the needed permission level of the '" + command.getValidExpressions().get(0) + "' command "
+                            + "to " + UserPermissions.getPermissionString(permissionLevel) + ".", event.getChannel(), Colors.GREEN);
+                    
+                    Bot.log.print(this, "Changed the needed permission level of the '" + command.getValidExpressions().get(0) + "' command "
+                            + " on '" + event.getGuildObject().getGuild().getName() + "' to " + UserPermissions.getPermissionString(permissionLevel) + ".");
+                }
+                else if (addResp == Command.NEW_PERMISSION)
+                {
+                    this.main.getDatabase().addOverride(event.getGuildObject().getStringID(), command.getValidExpressions().get(0), permissionLevel);
+                    
+                    this.bot.sendMessage("Changed the needed permission level of the '" + command.getValidExpressions().get(0) + "' command "
+                            + "to " + UserPermissions.getPermissionString(permissionLevel) + ".", event.getChannel(), Colors.GREEN);
+                    
+                    Bot.log.print(this, "Changed the needed permission level of the '" + command.getValidExpressions().get(0) + "' command "
+                            + " on '" + event.getGuildObject().getGuild().getName() + "' to " + UserPermissions.getPermissionString(permissionLevel) + ".");
+                }
+                else if (addResp == Command.CANT_OVERRIDE)
+                {
+                    this.bot.sendMessage("The permission level of this command can't be overriden.", event.getChannel(), Colors.RED);
+                }
+            }
+            return;
+        }    
+        
         this.bot.sendMessage("That is not a valid command.", event.getChannel(), Colors.RED);
     }
 
@@ -117,11 +116,11 @@ public class OverridePermissionCommand extends Command
      * @see bowtie.bot.obj.Command#getHelp()
      */
     @Override
-    public String getHelp() 
+    public String getHelp(GuildObject guild) 
     {
         return "```"
                 + "Override Permission Command \n"
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "With this command you can change the needed permission level to execute certain commands. \n\n"
                 + "Valid permission levels are: \n\n"
                 + " -user\n"
@@ -138,14 +137,5 @@ public class OverridePermissionCommand extends Command
                 + "already have a high enough level and that you can not change it to anything higher than your own permission. "
                 + "So masters can't override owner or creator commands and they can't change the needed permission to anything higher than master."
                 + "```";
-    }
-
-    /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new OverridePermissionCommand(this.validExpressions, this.permission, this.bot, this.main);
     }
 }

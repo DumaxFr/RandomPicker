@@ -10,6 +10,7 @@ import java.util.List;
 import bowt.bot.Bot;
 import bowt.cmnd.Command;
 import bowt.evnt.impl.CommandEvent;
+import bowt.guild.GuildObject;
 import bowt.util.perm.UserPermissions;
 
 /**
@@ -81,23 +82,14 @@ public class GetAliveLogsCommand extends Command
      * @see bowtie.bot.obj.Command#getHelp()
      */
     @Override
-    public String getHelp()
+    public String getHelp(GuildObject guild)
     {
         return "```"
                 + "Get Alivelogs Command \n"
-                + "<Needs " + UserPermissions.getPermissionString(this.permissionOverride) + " permissions> \n\n"
+                + "<Needs " + UserPermissions.getPermissionString(this.getPermissionOverride(guild)) + " permissions> \n\n"
                 + "This command will send you a file containing the alivelogs. \n\n\n"
                 + "Related Commands: \n"
                 + "- clearalivelogs"
                 + "```";
-    }
-
-    /**
-     * @see bowt.cmnd.Command#copy()
-     */
-    @Override
-    public Command copy()
-    {
-        return new GetAliveLogsCommand(this.validExpressions, this.permission, this.bot);
     }
 }
